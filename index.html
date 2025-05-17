@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Fishing Game</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="startScreen" class="overlay">
+    <h1>🎣 Fishing Game</h1>
+    <button id="startButton">Start Game</button>
+  </div>
+
+  <div id="endScreen" class="overlay" style="display:none;">
+    <h1>Game Over</h1>
+    <p id="finalScore">Your Score: 0</p>
+    <button id="restartButton">Play Again</button>
+  </div>
+
+  <div id="sky-background"></div>
+  <div id="water-background"></div>
+  <img id="boat" src="assets/boat.png" alt="Boat" />
+  <canvas id="gameCanvas"></canvas>
+
+  <div id="hud">
+    <div id="scoreboard">🎣 Score: <span id="score">0</span></div>
+    <div id="timer">⏳ Time: <span id="time">60</span>s</div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
