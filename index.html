@@ -3,13 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Fishing Game</title>
+  <title>Deep Sea Fishing Adventure</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="startScreen" class="overlay">
-    <h1>🎣 Fishing Game</h1>
-    <button id="startButton">Start Game</button>
+    <h1>🎣 Deep Sea Fishing Adventure</h1>
+    <p>Explore the ocean depths and catch as many fish as possible!</p>
+    <p>Watch out for obstacles - they'll knock fish off your hook!</p>
+    <div id="instructions">
+      <p><strong>Controls:</strong></p>
+      <ul>
+        <li>W - Reel up</li>
+        <li>S - Lower hook</li>
+        <li>A/D - Move hook left/right</li>
+      </ul>
+    </div>
+    <button id="startButton">Start Fishing</button>
   </div>
 
   <div id="endScreen" class="overlay" style="display:none;">
@@ -20,12 +30,22 @@
 
   <div id="sky-background"></div>
   <div id="water-background"></div>
+  <div id="water-surface"></div>
   <img id="boat" src="assets/boat.png" alt="Boat" />
   <canvas id="gameCanvas"></canvas>
 
   <div id="hud">
     <div id="scoreboard">🎣 Score: <span id="score">0</span></div>
     <div id="timer">⏳ Time: <span id="time">60</span>s</div>
+  </div>
+
+  <div id="controls-guide">
+    <strong>Controls:</strong>
+    <ul>
+      <li>W - Reel up</li>
+      <li>S - Lower hook</li>
+      <li>A/D - Move hook left/right</li>
+    </ul>
   </div>
 
   <script src="script.js"></script>
