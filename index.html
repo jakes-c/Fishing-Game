@@ -7,27 +7,155 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="startScreen" class="overlay">
-    <h1>🎣 Deep Sea Fishing Adventure</h1>
-    <p>Explore the ocean depths and catch as many fish as possible!</p>
-    <p>Watch out for obstacles - they'll knock fish off your hook!</p>
-    <div id="instructions">
-      <p><strong>Controls:</strong></p>
-      <ul>
-        <li>W - Reel up</li>
-        <li>S - Lower hook</li>
-        <li>A/D - Move hook left/right</li>
-      </ul>
+  <!-- Main Menu Screen -->
+  <div id="mainMenu" class="overlay">
+    <div class="menu-container">
+      <h1>🎣 Deep Sea Fishing Adventure</h1>
+      <p>Explore the ocean depths and catch as many fish as possible!</p>
+      <button id="playButton" class="menu-button">Play Game</button>
+      <button id="howToPlayButton" class="menu-button">How To Play</button>
     </div>
-    <button id="startButton">Start Fishing</button>
   </div>
 
+  <!-- Level Selection Screen -->
+  <div id="levelSelect" class="overlay" style="display:none;">
+    <div class="menu-container">
+      <h1>Select Level</h1>
+      <div class="levels-grid">
+        <div class="level-card" data-level="1">
+          <div class="level-number">1</div>
+          <h3>Shallow Waters</h3>
+          <p>Easy difficulty - Perfect for beginners</p>
+          <div class="level-details">
+            <span>⏱️ 60s</span>
+            <span>🐟 Common Fish</span>
+          </div>
+        </div>
+        <div class="level-card" data-level="2">
+          <div class="level-number">2</div>
+          <h3>Mid Ocean</h3>
+          <p>Medium difficulty - More obstacles</p>
+          <div class="level-details">
+            <span>⏱️ 60s</span>
+            <span>🐠 Exotic Fish</span>
+          </div>
+        </div>
+        <div class="level-card" data-level="3">
+          <div class="level-number">3</div>
+          <h3>Deep Abyss</h3>
+          <p>Hard difficulty - Rare fish & challenges</p>
+          <div class="level-details">
+            <span>⏱️ 60s</span>
+            <span>🦑 Legendary Creatures</span>
+          </div>
+        </div>
+      </div>
+      <button id="backToMainButton" class="back-button">Back to Main Menu</button>
+    </div>
+  </div>
+
+  <!-- Customization Screen -->
+  <div id="customizationScreen" class="overlay" style="display:none;">
+    <div class="menu-container">
+      <h1 id="customizationTitle">Level 1: Customization</h1>
+      
+      <div class="customization-options">
+        <div class="option-section">
+          <h3>Select Your Boat</h3>
+          <div class="options-grid">
+            <div class="option-card selected" data-boat="boat1">
+              <img src="assets/boat.png" alt="Small Boat" class="option-image">
+              <p>Small Boat</p>
+            </div>
+            <div class="option-card" data-boat="boat2">
+              <img src="assets/boat2.png" alt="Medium Boat" class="option-image">
+              <p>Medium Boat</p>
+            </div>
+            <div class="option-card" data-boat="boat3">
+              <img src="assets/boat3.png" alt="Large Boat" class="option-image">
+              <p>Large Boat</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="option-section">
+          <h3>Select Your Hook</h3>
+          <div class="options-grid">
+            <div class="option-card selected" data-hook="hook1">
+              <img src="assets/hook.png" alt="Basic Hook" class="option-image">
+              <p>Basic Hook</p>
+            </div>
+            <div class="option-card" data-hook="hook2">
+              <img src="assets/hook2.png" alt="Double Hook" class="option-image">
+              <p>Double Hook</p>
+            </div>
+            <div class="option-card" data-hook="hook3">
+              <img src="assets/hook3.png" alt="Magnet Hook" class="option-image">
+              <p>Magnet Hook</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="buttons-container">
+        <button id="backToLevelsButton" class="back-button">Back to Levels</button>
+        <button id="startGameButton" class="menu-button">Start Fishing!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- How To Play Screen -->
+  <div id="howToPlayScreen" class="overlay" style="display:none;">
+    <div class="menu-container">
+      <h1>How To Play</h1>
+      <div class="instructions-container">
+        <div class="instruction-section">
+          <h3>Controls</h3>
+          <ul>
+            <li><strong>W</strong> - Reel up your fishing line</li>
+            <li><strong>S</strong> - Lower your fishing hook</li>
+            <li><strong>A</strong> - Move hook left</li>
+            <li><strong>D</strong> - Move hook right</li>
+          </ul>
+        </div>
+        
+        <div class="instruction-section">
+          <h3>Gameplay</h3>
+          <ul>
+            <li>Catch as many fish as possible before time runs out</li>
+            <li>Different fish are worth different points</li>
+            <li>Avoid obstacles - they'll knock fish off your hook!</li>
+            <li>Return to the surface to score your caught fish</li>
+            <li>Each level has unique fish and challenges</li>
+          </ul>
+        </div>
+        
+        <div class="instruction-section">
+          <h3>Level Progression</h3>
+          <p><strong>Level 1:</strong> Shallow waters with common fish</p>
+          <p><strong>Level 2:</strong> Deeper waters with exotic fish and more obstacles</p>
+          <p><strong>Level 3:</strong> The abyss with rare creatures and challenging environment</p>
+        </div>
+      </div>
+      <button id="backFromHowToPlayButton" class="back-button">Back to Main Menu</button>
+    </div>
+  </div>
+
+  <!-- Game Over Screen -->
   <div id="endScreen" class="overlay" style="display:none;">
-    <h1>Game Over</h1>
-    <p id="finalScore">Your Score: 0</p>
-    <button id="restartButton">Play Again</button>
+    <div class="menu-container">
+      <h1>Game Over</h1>
+      <p id="finalScore">Your Score: 0</p>
+      <p id="levelCompleted">Level 1 Completed!</p>
+      <div class="buttons-container">
+        <button id="nextLevelButton" class="menu-button">Next Level</button>
+        <button id="replayLevelButton" class="menu-button">Replay Level</button>
+        <button id="backToLevelsFromEndButton" class="back-button">Level Select</button>
+      </div>
+    </div>
   </div>
 
+  <!-- Game Elements -->
   <div id="sky-background"></div>
   <div id="water-background"></div>
   <div id="water-surface"></div>
@@ -37,6 +165,7 @@
   <div id="hud">
     <div id="scoreboard">🎣 Score: <span id="score">0</span></div>
     <div id="timer">⏳ Time: <span id="time">60</span>s</div>
+    <div id="level-indicator">Level: <span id="current-level">1</span></div>
   </div>
 
   <div id="controls-guide">
