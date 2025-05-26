@@ -5,8 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Deep Sea Fishing Adventure</title>
   <link rel="stylesheet" href="style.css" />
+  <!-- Preload critical images -->
+  <link rel="preload" href="assets/boat1.png" as="image" />
+  <link rel="preload" href="assets/boat2.png" as="image" />
+  <link rel="preload" href="assets/boat3.png" as="image" />
 </head>
 <body>
+  <!-- Image Preloader - Hidden elements to force image loading -->
+  <div class="image-preloader" aria-hidden="true">
+    <img src="assets/boat1.png" alt="" />
+    <img src="assets/boat2.png" alt="" />
+    <img src="assets/boat3.png" alt="" />
+    <img src="assets/hook1.png" alt="" />
+    <img src="assets/hook2.png" alt="" />
+    <img src="assets/hook3.png" alt="" />
+  </div>
+
   <!-- Main Menu Screen -->
   <div id="mainMenu" class="overlay">
     <div class="menu-container">
@@ -64,16 +78,19 @@
           <h3>Select Your Boat</h3>
           <div class="options-grid">
             <div class="option-card selected" data-boat="boat1">
+              <img class="option-image boat-image" src="assets/boat1.png" alt="Boat 1" loading="eager" />
               <div class="boat-placeholder">🚤</div>
-              <p>Boat 1</p>
+              <p>Speedboat</p>
             </div>
             <div class="option-card" data-boat="boat2">
+              <img class="option-image boat-image" src="assets/boat2.png" alt="Boat 2" loading="eager" />
               <div class="boat-placeholder">⛵</div>
-              <p>Boat 2</p>
+              <p>Sailboat</p>
             </div>
             <div class="option-card" data-boat="boat3">
+              <img class="option-image boat-image" src="assets/boat3.png" alt="Boat 3" loading="eager" />
               <div class="boat-placeholder">🛥️</div>
-              <p>Boat 3</p>
+              <p>Yacht</p>
             </div>
           </div>
         </div>
@@ -82,16 +99,19 @@
           <h3>Select Your Hook</h3>
           <div class="options-grid">
             <div class="option-card selected" data-hook="hook1">
+              <img class="option-image hook-image" src="assets/hook1.png" alt="Hook 1" loading="eager" />
               <div class="hook-placeholder">🎣</div>
-              <p>Hook 1</p>
+              <p>Basic Hook</p>
             </div>
             <div class="option-card" data-hook="hook2">
+              <img class="option-image hook-image" src="assets/hook2.png" alt="Hook 2" loading="eager" />
               <div class="hook-placeholder">🪝</div>
-              <p>Hook 2</p>
+              <p>Sharp Hook</p>
             </div>
             <div class="option-card" data-hook="hook3">
+              <img class="option-image hook-image" src="assets/hook3.png" alt="Hook 3" loading="eager" />
               <div class="hook-placeholder">🔗</div>
-              <p>Hook 3</p>
+              <p>Golden Hook</p>
             </div>
           </div>
         </div>
@@ -159,7 +179,7 @@
   <div id="sky-background"></div>
   <div id="water-background"></div>
   <div id="water-surface"></div>
-  <img id="boat" src="assets/boat1.png" alt="Boat" />
+  <img id="boat" src="assets/boat1.png" alt="Boat" loading="eager" />
   <canvas id="gameCanvas"></canvas>
 
   <div id="hud">
