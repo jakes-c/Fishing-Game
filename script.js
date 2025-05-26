@@ -602,7 +602,7 @@ class Fish {
         this.size = 90; // Very large deep sea fish
         break;
       case 'fish8.png':
-        this.size = 95; // Largest deep sea fish
+        this.size = 150; // Largest deep sea fish
         break;
       default:
         this.size = 60; // Default size for any other fish
