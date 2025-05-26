@@ -1222,12 +1222,13 @@ function startGame() {
   loadLevelAssets();
   
   // Wait a bit for images to load
-  setTimeout(() => {
-    spawnFish();
+ // In your startGame function, replace the setTimeout section with:
+setTimeout(() => {
+    spawnFishWithPreloader(); // Instead of spawnFish()
     spawnObstacles();
     update();
     startTimer();
-  }, 100);
+}, 100);
 }
 
 // End screen button handlers
@@ -1491,3 +1492,431 @@ document.querySelectorAll('.level-card').forEach(card => {
     });
 });
 */
+// Image Preloader Fix - Add this code to your existing JavaScript
+// This ensures all images are loaded before the game starts
+
+// Image preloader system
+class ImagePreloader {
+    constructor() {
+        this.loadedImages = new Map();
+        this.loadingPromises = new Map();
+        this.totalImages = 0;
+        this.loadedCount = 0;
+        this.onProgress = null;
+        this.onComplete = null;
+    }
+
+    // Load a single image and return a promise
+    loadImage(src, key = null) {
+        if (!key) key = src;
+        
+        // Return cached image if already loaded
+        if (this.loadedImages.has(key)) {
+            return Promise.resolve(this.loadedImages.get(key));
+        }
+
+        // Return existing promise if already loading
+        if (this.loadingPromises.has(key)) {
+            return this.loadingPromises.get(key);
+        }
+
+        const promise = new Promise((resolve, reject) => {
+            const img = new Image();
+            
+            img.onload = () => {
+                this.loadedImages.set(key, img);
+                this.loadedCount++;
+                
+                if (this.onProgress) {
+                    this.onProgress(this.loadedCount, this.totalImages);
+                }
+                
+                resolve(img);
+            };
+            
+            img.onerror = () => {
+                console.warn(`Failed to load image: ${src}`);
+                // Create a placeholder colored rectangle instead of failing
+                const canvas = document.createElement('canvas');
+                canvas.width = 100;
+                canvas.height = 100;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#ff0000';
+                ctx.fillRect(0, 0, 100, 100);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '12px Arial';
+                ctx.fillText('Missing', 25, 50);
+                
+                const placeholderImg = new Image();
+                placeholderImg.src = canvas.toDataURL();
+                this.loadedImages.set(key, placeholderImg);
+                this.loadedCount++;
+                
+                if (this.onProgress) {
+                    this.onProgress(this.loadedCount, this.totalImages);
+                }
+                
+                resolve(placeholderImg);
+            };
+            
+            img.src = src;
+        });
+
+        this.loadingPromises.set(key, promise);
+        this.totalImages++;
+        return promise;
+    }
+
+    // Load multiple images
+    loadImages(imageList) {
+        const promises = imageList.map(item => {
+            if (typeof item === 'string') {
+                return this.loadImage(item);
+            } else {
+                return this.loadImage(item.src, item.key);
+            }
+        });
+
+        return Promise.all(promises);
+    }
+
+    // Get a loaded image
+    getImage(key) {
+        return this.loadedImages.get(key);
+    }
+
+    // Check if an image is loaded
+    isLoaded(key) {
+        return this.loadedImages.has(key);
+    }
+}
+
+// Create global image preloader instance
+const imagePreloader = new ImagePreloader();
+
+// Define all game images that need to be preloaded
+const gameImages = {
+    // Boats
+    boats: [
+        { src: 'assets/boat1.png', key: 'boat1' },
+        { src: 'assets/boat2.png', key: 'boat2' },
+        { src: 'assets/boat3.png', key: 'boat3' }
+    ],
+    // Hooks
+    hooks: [
+        { src: 'assets/hook1.png', key: 'hook1' },
+        { src: 'assets/hook2.png', key: 'hook2' },
+        { src: 'assets/hook3.png', key: 'hook3' }
+    ],
+    // Fish
+    fish: [
+        { src: 'assets/fish1.png', key: 'fish1' },
+        { src: 'assets/fish2.png', key: 'fish2' },
+        { src: 'assets/fish3.png', key: 'fish3' },
+        { src: 'assets/fish4.png', key: 'fish4' },
+        { src: 'assets/fish5.png', key: 'fish5' },
+        { src: 'assets/fish6.png', key: 'fish6' },
+        { src: 'assets/fish7.png', key: 'fish7' },
+        { src: 'assets/fish8.png', key: 'fish8' }
+    ],
+    // Obstacles
+    obstacles: [
+        { src: 'assets/seahorse.png', key: 'seahorse' },
+        { src: 'assets/jellyfish.png', key: 'jellyfish' },
+        { src: 'assets/starfish.png', key: 'starfish' },
+        { src: 'assets/shell.png', key: 'shell' }
+    ]
+};
+
+// Loading screen functions
+function showLoadingScreen() {
+    // Create loading overlay if it doesn't exist
+    let loadingOverlay = document.getElementById('loadingOverlay');
+    if (!loadingOverlay) {
+        loadingOverlay = document.createElement('div');
+        loadingOverlay.id = 'loadingOverlay';
+        loadingOverlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 50, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            color: white;
+            font-family: Arial, sans-serif;
+        `;
+        
+        loadingOverlay.innerHTML = `
+            <div style="text-align: center;">
+                <h2 style="margin-bottom: 20px;">Loading Game Assets...</h2>
+                <div id="loadingBar" style="
+                    width: 300px;
+                    height: 20px;
+                    background: rgba(255,255,255,0.2);
+                    border-radius: 10px;
+                    overflow: hidden;
+                    margin-bottom: 10px;
+                ">
+                    <div id="loadingProgress" style="
+                        width: 0%;
+                        height: 100%;
+                        background: linear-gradient(90deg, #4CAF50, #2196F3);
+                        transition: width 0.3s ease;
+                        border-radius: 10px;
+                    "></div>
+                </div>
+                <div id="loadingText">0%</div>
+            </div>
+        `;
+        
+        document.body.appendChild(loadingOverlay);
+    }
+    
+    loadingOverlay.style.display = 'flex';
+}
+
+function updateLoadingProgress(loaded, total) {
+    const percentage = Math.round((loaded / total) * 100);
+    const progressBar = document.getElementById('loadingProgress');
+    const progressText = document.getElementById('loadingText');
+    
+    if (progressBar) {
+        progressBar.style.width = percentage + '%';
+    }
+    
+    if (progressText) {
+        progressText.textContent = `${percentage}% (${loaded}/${total})`;
+    }
+}
+
+function hideLoadingScreen() {
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) {
+        loadingOverlay.style.display = 'none';
+    }
+}
+
+// Enhanced loadLevelAssets function replacement
+function loadLevelAssetsWithPreloader() {
+    return new Promise((resolve, reject) => {
+        const config = levelConfigs[currentLevel];
+        const imagesToLoad = [];
+        
+        // Add current level fish images
+        config.fishTypes.forEach(fishName => {
+            const key = fishName.replace('.png', '');
+            imagesToLoad.push({ src: `assets/${fishName}`, key: key });
+        });
+        
+        // Add obstacle images
+        gameImages.obstacles.forEach(obs => {
+            imagesToLoad.push(obs);
+        });
+        
+        // Add selected boat and hook
+        imagesToLoad.push({ src: `assets/${selectedBoat}.png`, key: selectedBoat });
+        imagesToLoad.push({ src: `assets/${selectedHook}.png`, key: selectedHook });
+        
+        // Reset preloader counters
+        imagePreloader.totalImages = 0;
+        imagePreloader.loadedCount = 0;
+        
+        // Load all images
+        imagePreloader.loadImages(imagesToLoad)
+            .then(() => {
+                // Update your existing image arrays with preloaded images
+                fishImages.length = 0;
+                obstacleImages.length = 0;
+                
+                config.fishTypes.forEach(fishName => {
+                    const key = fishName.replace('.png', '');
+                    const img = imagePreloader.getImage(key);
+                    if (img) fishImages.push(img);
+                });
+                
+                gameImages.obstacles.forEach(obs => {
+                    const img = imagePreloader.getImage(obs.key);
+                    if (img) obstacleImages.push(img);
+                });
+                
+                // Update hook and boat images
+                const hookImage = imagePreloader.getImage(selectedHook);
+                if (hookImage) {
+                    hookImg.src = hookImage.src;
+                    hookImg.onload = null; // Remove any existing onload handlers
+                }
+                
+                const boatImage = imagePreloader.getImage(selectedBoat);
+                if (boatImage && boatElement) {
+                    boatElement.src = boatImage.src;
+                    boatElement.onload = null; // Remove any existing onload handlers
+                }
+                
+                resolve();
+            })
+            .catch(reject);
+    });
+}
+
+// Preload all images at game startup
+function preloadAllGameImages() {
+    return new Promise((resolve, reject) => {
+        showLoadingScreen();
+        
+        // Set up progress callback
+        imagePreloader.onProgress = updateLoadingProgress;
+        
+        // Collect all images to preload
+        const allImages = [
+            ...gameImages.boats,
+            ...gameImages.hooks,
+            ...gameImages.fish,
+            ...gameImages.obstacles
+        ];
+        
+        // Reset counters
+        imagePreloader.totalImages = 0;
+        imagePreloader.loadedCount = 0;
+        
+        imagePreloader.loadImages(allImages)
+            .then(() => {
+                hideLoadingScreen();
+                resolve();
+            })
+            .catch(error => {
+                console.error('Failed to preload images:', error);
+                hideLoadingScreen();
+                resolve(); // Continue anyway with placeholders
+            });
+    });
+}
+
+// Enhanced startGame function wrapper
+function startGameWithPreloader() {
+    showLoadingScreen();
+    
+    // Set up progress tracking for level-specific loading
+    imagePreloader.onProgress = (loaded, total) => {
+        updateLoadingProgress(loaded, total);
+    };
+    
+    loadLevelAssetsWithPreloader()
+        .then(() => {
+            hideLoadingScreen();
+            
+            // Call your original startGame function
+            startGame();
+        })
+        .catch(error => {
+            console.error('Failed to load level assets:', error);
+            hideLoadingScreen();
+            alert('Some images failed to load. The game may not display correctly.');
+            startGame(); // Start anyway
+        });
+}
+
+// Replace the startGameButton event listener
+if (startGameButton) {
+    // Remove existing event listener and add new one
+    const newStartGameButton = startGameButton.cloneNode(true);
+    startGameButton.parentNode.replaceChild(newStartGameButton, startGameButton);
+    
+    newStartGameButton.addEventListener('click', () => {
+        customizationScreen.style.display = 'none';
+        startGameWithPreloader();
+    });
+}
+
+// Initialize preloader when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    // Preload all images at startup
+    preloadAllGameImages().then(() => {
+        console.log('All game images preloaded successfully!');
+    });
+});
+
+// Enhanced Fish class creation with preloaded images
+function createFishWithPreloadedImage(x, worldY, speed, imageSrc, direction, depth, value = 1) {
+    const imageKey = imageSrc.replace('assets/', '').replace('.png', '');
+    const preloadedImage = imagePreloader.getImage(imageKey);
+    
+    if (preloadedImage) {
+        return new Fish(x, worldY, speed, preloadedImage, direction, depth, value);
+    } else {
+        // Fallback: create image normally but it might not be loaded
+        const img = new Image();
+        img.src = imageSrc;
+        return new Fish(x, worldY, speed, img, direction, depth, value);
+    }
+}
+
+// Enhanced spawnFish function that uses preloaded images
+function spawnFishWithPreloader() {
+    fishes = [];
+    const config = levelConfigs[currentLevel];
+    worldHeight = config.worldHeight;
+    
+    // Define depth zones based on level (same as original)
+    let depthZones;
+    if (currentLevel === 1) {
+        depthZones = [
+            { minDepth: 400, maxDepth: 800, fishCount: 8, fishValue: 1 },
+            { minDepth: 800, maxDepth: 1200, fishCount: 12, fishValue: 2 },
+            { minDepth: 1200, maxDepth: 1800, fishCount: 10, fishValue: 3 }
+        ];
+    } else if (currentLevel === 2) {
+        depthZones = [
+            { minDepth: 500, maxDepth: 1000, fishCount: 6, fishValue: 2 },
+            { minDepth: 1000, maxDepth: 1500, fishCount: 10, fishValue: 3 },
+            { minDepth: 1500, maxDepth: 2200, fishCount: 12, fishValue: 4 }
+        ];
+    } else { // Level 3
+        depthZones = [
+            { minDepth: 600, maxDepth: 1200, fishCount: 5, fishValue: 3 },
+            { minDepth: 1200, maxDepth: 2000, fishCount: 8, fishValue: 5 },
+            { minDepth: 2000, maxDepth: 2800, fishCount: 10, fishValue: 8 }
+        ];
+    }
+    
+    depthZones.forEach(zone => {
+        for (let i = 0; i < zone.fishCount; i++) {
+            const fishType = config.fishTypes[Math.floor(Math.random() * config.fishTypes.length)];
+            const imageKey = fishType.replace('.png', '');
+            const preloadedImage = imagePreloader.getImage(imageKey);
+            
+            let x, speed, direction;
+            
+            if (Math.random() > 0.5) {
+                x = Math.random() * 100;
+                speed = Math.random() * 2 + 1;
+                direction = 'right';
+            } else {
+                x = canvas.width - (Math.random() * 100);
+                speed = -(Math.random() * 2 + 1);
+                direction = 'left';
+            }
+            
+            const worldY = zone.minDepth + Math.random() * (zone.maxDepth - zone.minDepth);
+            
+            if (preloadedImage) {
+                fishes.push(new Fish(x, worldY, speed, preloadedImage, direction, zone.minDepth, zone.fishValue));
+            } else {
+                // Fallback
+                const img = new Image();
+                img.src = `assets/${fishType}`;
+                fishes.push(new Fish(x, worldY, speed, img, direction, zone.minDepth, zone.fishValue));
+            }
+        }
+    });
+}
+
+// Replace spawnFish calls with spawnFishWithPreloader
+// You can add this line to override the original function:
+// spawnFish = spawnFishWithPreloader;
+
+console.log('Image preloader system loaded successfully!');
