@@ -1,4 +1,4 @@
-/* Deep Sea Fishing Adventure - Style.css */
+/* Deep Sea Fishing Adventure - Enhanced Level-Based Colors */
 
 * {
   box-sizing: border-box;
@@ -13,20 +13,140 @@ body, html {
   height: 100%;
   overflow: hidden;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: #87ceeb;
+  background: #000033; /* Changed to neutral dark blue instead of sky blue */
 }
 
-/* Backgrounds */
+/* Background Transitions - Reduced transition time to minimize flash */
+#sky-background, #water-background {
+  transition: background 0.3s ease-in-out; /* Reduced from 1.2s to 0.3s */
+}
+
+/* LEVEL 1: SHALLOW CORAL REEF - Bright tropical waters */
+body.level-1 #sky-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 35%;
+  background: linear-gradient(to bottom, 
+    #FFD700 0%,     /* Golden sunrise */
+    #FFA500 20%,    /* Orange */
+    #FF6347 40%,    /* Coral */
+    #87CEEB 70%,    /* Sky blue */
+    #B0E0E6 100%    /* Powder blue */
+  );
+  z-index: 0;
+  pointer-events: none;
+}
+
+body.level-1 #water-background {
+  position: fixed;
+  top: 35%;
+  left: 0;
+  width: 100%;
+  height: 65%;
+  background: linear-gradient(to bottom, 
+    #00CED1 0%,     /* Dark turquoise */
+    #20B2AA 25%,    /* Light sea green */
+    #48D1CC 50%,    /* Medium turquoise */
+    #40E0D0 75%,    /* Turquoise */
+    #00FFFF 100%    /* Cyan - shallow bright water */
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* LEVEL 2: TWILIGHT ZONE - Mysterious deep blue with purple hints */
+body.level-2 #sky-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 35%;
+  background: linear-gradient(to bottom, 
+    #2F1B69 0%,     /* Deep purple */
+    #4B0082 25%,    /* Indigo */
+    #483D8B 50%,    /* Dark slate blue */
+    #6A5ACD 75%,    /* Slate blue */
+    #8A2BE2 100%    /* Blue violet */
+  );
+  z-index: 0;
+  pointer-events: none;
+}
+
+body.level-2 #water-background {
+  position: fixed;
+  top: 35%;
+  left: 0;
+  width: 100%;
+  height: 65%;
+  background: linear-gradient(to bottom, 
+    #191970 0%,     /* Midnight blue */
+    #1E1E3F 20%,    /* Dark navy */
+    #0F3460 40%,    /* Deep blue */
+    #082567 60%,    /* Darker blue */
+    #051845 80%,    /* Very dark blue */
+    #000080 100%    /* Navy */
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* LEVEL 3: ABYSSAL DEPTHS - Dark void with eerie green/red accents */
+body.level-3 #sky-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 35%;
+  background: linear-gradient(to bottom, 
+    #000000 0%,     /* Pure black */
+    #1C1C1C 20%,    /* Dark gray */
+    #2F2F2F 40%,    /* Darker gray */
+    #1a0f1a 60%,    /* Dark purple-black */
+    #0d0d0d 80%,    /* Almost black */
+    #000000 100%    /* Pure black */
+  );
+  z-index: 0;
+  pointer-events: none;
+}
+
+body.level-3 #water-background {
+  position: fixed;
+  top: 35%;
+  left: 0;
+  width: 100%;
+  height: 65%;
+  background: linear-gradient(to bottom, 
+    #0A0A0A 0%,     /* Near black */
+    #1a0033 15%,    /* Very dark purple */
+    #003300 30%,    /* Very dark green */
+    #001100 45%,    /* Darker green */
+    #000d1a 60%,    /* Dark blue-black */
+    #000066 75%,    /* Very dark blue */
+    #000000 90%,    /* Black */
+    #000000 100%    /* Pure black abyss */
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Default backgrounds (fallback) - Neutral dark colors to prevent orange flash */
 #sky-background {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 35%;
-  background: url('assets/background1.jpg') no-repeat center center;
-  background-size: cover;
+  background: linear-gradient(to bottom, 
+    #000033 0%,     /* Dark blue */
+    #000044 25%,    /* Slightly lighter dark blue */
+    #000055 50%,    /* Medium dark blue */
+    #000066 75%,    /* Lighter dark blue */
+    #000077 100%    /* Lightest dark blue */
+  );
   z-index: 0;
-  pointer-events: none; /* Allow clicks to pass through */
+  pointer-events: none;
 }
 
 #water-background {
@@ -35,10 +155,120 @@ body, html {
   left: 0;
   width: 100%;
   height: 65%;
-  background: url('assets/background2.jpg') no-repeat center bottom;
-  background-size: cover;
+  background: linear-gradient(to bottom, 
+    #000044 0%,     /* Dark blue */
+    #000055 25%,    /* Slightly darker */
+    #000066 50%,    /* Medium dark */
+    #000077 75%,    /* Lighter dark */
+    #000088 100%    /* Lightest dark */
+  );
   z-index: 1;
-  pointer-events: none; /* Allow clicks to pass through */
+  pointer-events: none;
+}
+
+/* Enhanced water surface effects for each level */
+body.level-1 #water-surface {
+  position: fixed;
+  top: 35%;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, 
+    transparent, 
+    #FFFFFF 25%, 
+    #FFD700 50%, 
+    #FFFFFF 75%, 
+    transparent
+  );
+  animation: wave1 2.5s ease-in-out infinite;
+  z-index: 2;
+}
+
+body.level-2 #water-surface {
+  position: fixed;
+  top: 35%;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, 
+    transparent, 
+    #8A2BE2 20%, 
+    #9370DB 40%, 
+    #BA55D3 60%, 
+    #8A2BE2 80%, 
+    transparent
+  );
+  animation: wave2 2s ease-in-out infinite;
+  z-index: 2;
+}
+
+body.level-3 #water-surface {
+  position: fixed;
+  top: 35%;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: linear-gradient(90deg, 
+    transparent, 
+    #00FF00 15%, 
+    #FF0000 30%, 
+    #0000FF 45%, 
+    #FFFF00 60%, 
+    #FF00FF 75%, 
+    #00FFFF 90%, 
+    transparent
+  );
+  animation: wave3 1.5s ease-in-out infinite;
+  z-index: 2;
+}
+
+@keyframes wave1 {
+  0%, 100% { 
+    opacity: 0.7; 
+    transform: scaleY(1) translateX(0); 
+    filter: brightness(1);
+  }
+  50% { 
+    opacity: 1; 
+    transform: scaleY(2) translateX(5px); 
+    filter: brightness(1.3);
+  }
+}
+
+@keyframes wave2 {
+  0%, 100% { 
+    opacity: 0.8; 
+    transform: scaleY(1) translateX(-15px); 
+    filter: hue-rotate(0deg);
+  }
+  50% { 
+    opacity: 1; 
+    transform: scaleY(2.5) translateX(15px); 
+    filter: hue-rotate(30deg);
+  }
+}
+
+@keyframes wave3 {
+  0%, 100% { 
+    opacity: 0.9; 
+    transform: scaleY(1) translateX(-25px); 
+    filter: hue-rotate(0deg) brightness(0.8);
+  }
+  25% { 
+    opacity: 1; 
+    transform: scaleY(1.5) translateX(-10px); 
+    filter: hue-rotate(90deg) brightness(1.2);
+  }
+  50% { 
+    opacity: 1; 
+    transform: scaleY(3) translateX(25px); 
+    filter: hue-rotate(180deg) brightness(1.5);
+  }
+  75% { 
+    opacity: 1; 
+    transform: scaleY(2) translateX(10px); 
+    filter: hue-rotate(270deg) brightness(1);
+  }
 }
 
 /* Boat - Keep it positioned at the top always */
@@ -48,7 +278,7 @@ body, html {
   left: 50%;
   transform: translateX(-50%);
   width: 600px;
-  z-index: 10; /* Increased z-index to stay above everything */
+  z-index: 10;
   pointer-events: none;
   animation: floatBoat 2s ease-in-out infinite;
 }
@@ -69,7 +299,7 @@ body, html {
   pointer-events: none;
 }
 
-/* HUD */
+/* Enhanced HUD with level-specific styling */
 #hud {
   position: fixed;
   top: 10px;
@@ -84,10 +314,33 @@ body, html {
   color: #fff;
   font-weight: 700;
   font-size: 18px;
-  z-index: 15; /* Increased to stay above everything */
+  z-index: 15;
   user-select: none;
   box-shadow: 0 0 10px rgba(0, 0, 50, 0.5);
   text-align: center;
+  transition: all 0.3s ease; /* Reduced transition time */
+}
+
+body.level-1 #hud {
+  background: rgba(255, 165, 0, 0.85);
+  border: 2px solid rgba(255, 215, 0, 0.8);
+  color: #000080;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+}
+
+body.level-2 #hud {
+  background: rgba(75, 0, 130, 0.9);
+  border: 2px solid rgba(138, 43, 226, 0.8);
+  color: #E6E6FA;
+  box-shadow: 0 0 20px rgba(138, 43, 226, 0.7);
+}
+
+body.level-3 #hud {
+  background: rgba(0, 0, 0, 0.95);
+  border: 2px solid rgba(0, 255, 0, 0.6);
+  color: #00FF00;
+  box-shadow: 0 0 25px rgba(0, 255, 0, 0.8);
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
 }
 
 #scoreboard, #timer, #level-indicator {
@@ -97,7 +350,7 @@ body, html {
   gap: 8px;
 }
 
-/* Controls guide */
+/* Enhanced controls guide with level-specific styling */
 #controls-guide {
   position: fixed;
   bottom: 10px;
@@ -107,7 +360,27 @@ body, html {
   padding: 10px;
   border-radius: 5px;
   font-size: 14px;
-  z-index: 15; /* Increased to stay visible */
+  z-index: 15;
+  transition: all 0.3s ease; /* Reduced transition time */
+}
+
+body.level-1 #controls-guide {
+  background: rgba(255, 140, 0, 0.85);
+  border: 1px solid rgba(255, 215, 0, 0.6);
+  color: #000080;
+}
+
+body.level-2 #controls-guide {
+  background: rgba(75, 0, 130, 0.9);
+  border: 1px solid rgba(138, 43, 226, 0.6);
+  color: #E6E6FA;
+}
+
+body.level-3 #controls-guide {
+  background: rgba(0, 0, 0, 0.95);
+  border: 1px solid rgba(255, 0, 0, 0.6);
+  color: #FF0000;
+  text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
 }
 
 #controls-guide ul {
@@ -222,11 +495,71 @@ body, html {
   justify-content: space-between;
 }
 
+/* Enhanced level-specific card colors */
+.level-card[data-level="1"] {
+  background: linear-gradient(135deg, 
+    rgba(255, 215, 0, 0.8), 
+    rgba(255, 165, 0, 0.7), 
+    rgba(0, 206, 209, 0.6)
+  );
+  border-color: rgba(255, 215, 0, 0.6);
+  color: #000080;
+}
+
+.level-card[data-level="2"] {
+  background: linear-gradient(135deg, 
+    rgba(75, 0, 130, 0.9), 
+    rgba(138, 43, 226, 0.8), 
+    rgba(25, 25, 112, 0.7)
+  );
+  border-color: rgba(138, 43, 226, 0.6);
+  color: #E6E6FA;
+}
+
+.level-card[data-level="3"] {
+  background: linear-gradient(135deg, 
+    rgba(0, 0, 0, 0.95), 
+    rgba(0, 51, 0, 0.8), 
+    rgba(26, 0, 51, 0.7)
+  );
+  border-color: rgba(0, 255, 0, 0.4);
+  color: #00FF00;
+  text-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
 .level-card:hover {
   transform: translateY(-5px);
-  background: rgba(0, 80, 150, 0.8);
-  border-color: rgba(100, 200, 255, 0.7);
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.level-card[data-level="1"]:hover {
+  background: linear-gradient(135deg, 
+    rgba(255, 215, 0, 0.95), 
+    rgba(255, 165, 0, 0.9), 
+    rgba(0, 206, 209, 0.8)
+  );
+  border-color: rgba(255, 215, 0, 0.9);
+  box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4);
+}
+
+.level-card[data-level="2"]:hover {
+  background: linear-gradient(135deg, 
+    rgba(75, 0, 130, 1), 
+    rgba(138, 43, 226, 0.95), 
+    rgba(25, 25, 112, 0.9)
+  );
+  border-color: rgba(138, 43, 226, 0.9);
+  box-shadow: 0 10px 30px rgba(138, 43, 226, 0.4);
+}
+
+.level-card[data-level="3"]:hover {
+  background: linear-gradient(135deg, 
+    rgba(0, 0, 0, 1), 
+    rgba(0, 51, 0, 0.95), 
+    rgba(26, 0, 51, 0.9)
+  );
+  border-color: rgba(0, 255, 0, 0.7);
+  box-shadow: 0 10px 30px rgba(0, 255, 0, 0.3);
 }
 
 .level-number {
@@ -248,10 +581,40 @@ body, html {
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
 }
 
+.level-card[data-level="1"] .level-number {
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #000080;
+  border-color: #FFD700;
+}
+
+.level-card[data-level="2"] .level-number {
+  background: linear-gradient(135deg, #4B0082, #8A2BE2);
+  color: #E6E6FA;
+  border-color: #8A2BE2;
+}
+
+.level-card[data-level="3"] .level-number {
+  background: linear-gradient(135deg, #000000, #003300);
+  color: #00FF00;
+  border-color: #00FF00;
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+}
+
 .level-card h3 {
   margin-top: 15px;
   font-size: 1.3rem;
-  color: #80ddff;
+}
+
+.level-card[data-level="1"] h3 {
+  color: #000080;
+}
+
+.level-card[data-level="2"] h3 {
+  color: #E6E6FA;
+}
+
+.level-card[data-level="3"] h3 {
+  color: #00FF00;
 }
 
 .level-card p {
