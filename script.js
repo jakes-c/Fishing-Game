@@ -851,7 +851,7 @@ function drawWaves() {
   ctx.stroke();
 }
 
-// Update boat position
+// Update boat position function
 function updateBoatPosition() {
   const hookDepthBelowBoat = Math.max(0, hook.worldY - boat.defaultWorldY);
   
@@ -865,7 +865,8 @@ function updateBoatPosition() {
   boat.worldY += (targetBoatWorldY - boat.worldY) * 0.04;
   boat.y = boat.worldY - cameraY;
   
-  boatElement.style.top = (boat.y - 300) + 'px';
+  // Move boat vertically up by increasing the offset
+  boatElement.style.top = (boat.y - 350) + 'px'; // Changed from -300 to -450
   
   const rect = boatElement.getBoundingClientRect();
   boat.x = rect.left + rect.width / 2;
@@ -894,7 +895,7 @@ function updateBoatPosition() {
   // Reset hook position at boat
   if (hook.worldY <= boat.worldY) {
     hook.x = boat.x - 270;
-    hook.y = boat.y + 15;
+    hook.y = boat.y + 20;
     hook.worldY = boat.worldY + 15;
     hook.originalY = hook.y;
     hook.isMovingDown = false;
@@ -903,7 +904,6 @@ function updateBoatPosition() {
     hook.fishBeingDelivered = false;
   }
 }
-
 // Draw fishing hook and line
 function drawHook() {
   hook.y = hook.worldY - cameraY;
@@ -1050,7 +1050,7 @@ function drawBackground() {
         x + Math.random() * 100, 
         seaFloorY - rockHeight/2, 
         30 + Math.random() * 20, 
-        rockHeight/2, 
+        rockHeight/2,  
         0, 0, Math.PI * 2
       );
       ctx.fill();
