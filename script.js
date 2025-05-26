@@ -47,7 +47,7 @@ const levelConfigs = {
   2: {
     name: "Mid Ocean", 
     timeLimit: 60,
-    fishTypes: ['fish1.png', 'fish2.png', 'fish3.png'],
+    fishTypes: ['fish3.png', 'fish4.png', 'fish5.png'],
     obstacleCount: 5,
     worldHeight: 2500,
     scoreMultiplier: 1.5
@@ -55,7 +55,7 @@ const levelConfigs = {
   3: {
     name: "Deep Abyss",
     timeLimit: 60,
-    fishTypes: ['fish1.png', 'fish2.png', 'fish3.png', 'fish4.png'],
+    fishTypes: ['fish5.png', 'fish6.png', 'fish7.png', 'fish8.png'],
     obstacleCount: 8,
     worldHeight: 3000,
     scoreMultiplier: 2
@@ -576,7 +576,39 @@ class Fish {
     this.x = x;
     this.worldY = worldY;
     this.speed = speed;
-    this.size = 60;
+    
+    // Determine size based on fish image
+    const imageName = image.src.split('/').pop(); // Get filename from image src
+    switch(imageName) {
+      case 'fish1.png':
+        this.size = 50; // Small shallow water fish
+        break;
+      case 'fish2.png':
+        this.size = 55; // Small shallow water fish
+        break;
+      case 'fish3.png':
+        this.size = 65; // Medium mid-ocean fish
+        break;
+      case 'fish4.png':
+        this.size = 70; // Medium mid-ocean fish
+        break;
+      case 'fish5.png':
+        this.size = 80; // Large deep sea fish
+        break;
+      case 'fish6.png':
+        this.size = 85; // Large deep sea fish
+        break;
+      case 'fish7.png':
+        this.size = 90; // Very large deep sea fish
+        break;
+      case 'fish8.png':
+        this.size = 95; // Largest deep sea fish
+        break;
+      default:
+        this.size = 60; // Default size for any other fish
+        break;
+    }
+    
     this.image = image;
     this.caught = false;
     this.direction = direction;
@@ -1261,3 +1293,201 @@ document.addEventListener('DOMContentLoaded', () => {
   // Show main menu on load
   mainMenu.style.display = 'flex';
 });
+// Level-based color management functions - CANVAS RENDERING VERSION
+// Add these functions to your existing JavaScript code
+
+// Level-specific color schemes for canvas rendering
+const levelColorSchemes = {
+    1: {
+        skyColor: '#87ceeb',
+        waterSurface: '#4682b4',
+        waterDeep: '#191970',
+        waterBase: '#0077be',
+        gradientStops: [
+            { stop: 0, color: 'rgba(0, 119, 190, 1)' },
+            { stop: 0.4, color: 'rgba(0, 80, 150, 1)' },
+            { stop: 1, color: 'rgba(0, 40, 100, 1)' }
+        ]
+    },
+    2: {
+        skyColor: '#6495ed',
+        waterSurface: '#4169e1',
+        waterDeep: '#0000cd',
+        waterBase: '#0066cc',
+        gradientStops: [
+            { stop: 0, color: 'rgba(0, 102, 204, 1)' },
+            { stop: 0.4, color: 'rgba(0, 60, 180, 1)' },
+            { stop: 1, color: 'rgba(0, 20, 120, 1)' }
+        ]
+    },
+    3: {
+        skyColor: '#483d8b',
+        waterSurface: '#2e2b5f',
+        waterDeep: '#1a1a2e',
+        waterBase: '#2d1b69',
+        gradientStops: [
+            { stop: 0, color: 'rgba(45, 27, 105, 1)' },
+            { stop: 0.4, color: 'rgba(30, 20, 80, 1)' },
+            { stop: 1, color: 'rgba(15, 10, 50, 1)' }
+        ]
+    }
+};
+
+// Function to get current level colors
+function getCurrentLevelColors() {
+    return levelColorSchemes[currentLevel] || levelColorSchemes[1];
+}
+
+// REPLACE your existing drawBackground() function with this version:
+function drawBackground() {
+    const dynamicWaterSurfaceY = waterSurfaceY;
+    const colors = getCurrentLevelColors();
+    
+    // Sky with level-specific color
+    ctx.fillStyle = colors.skyColor;
+    ctx.fillRect(0, 0, canvas.width, dynamicWaterSurfaceY);
+    
+    // Water base with level-specific color
+    ctx.fillStyle = colors.waterBase;
+    ctx.fillRect(0, dynamicWaterSurfaceY, canvas.width, canvas.height - dynamicWaterSurfaceY);
+    
+    // Depth gradient based on level
+    const depthRatio = Math.min(1, cameraY / (worldHeight * 0.7));
+    
+    const gradient = ctx.createLinearGradient(0, dynamicWaterSurfaceY, 0, canvas.height);
+    
+    // Use level-specific gradient colors
+    const levelGradient = colors.gradientStops;
+    levelGradient.forEach(stop => {
+        // Adjust color intensity based on depth
+        const rgba = stop.color.replace('rgba(', '').replace(')', '').split(',');
+        const r = Math.max(0, parseInt(rgba[0]) - depthRatio * 30);
+        const g = Math.max(0, parseInt(rgba[1]) - depthRatio * 40);
+        const b = Math.max(0, parseInt(rgba[2]) - depthRatio * 60);
+        gradient.addColorStop(stop.stop, `rgba(${r}, ${g}, ${b}, 1)`);
+    });
+    
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, dynamicWaterSurfaceY, canvas.width, canvas.height - dynamicWaterSurfaceY);
+    
+    // Ambient particles for deeper levels (unchanged)
+    if (depthRatio > 0.1 && currentLevel > 1) {
+        const particleCount = Math.floor(20 * depthRatio * currentLevel);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+        
+        for (let i = 0; i < particleCount; i++) {
+            const size = 1 + Math.random() * (currentLevel);
+            const x = Math.random() * canvas.width;
+            const y = dynamicWaterSurfaceY + Math.random() * (canvas.height - dynamicWaterSurfaceY);
+            
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    // Depth markers (unchanged)
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.font = '16px Arial';
+    
+    const depthInterval = currentLevel === 1 ? 300 : currentLevel === 2 ? 400 : 500;
+    for (let depth = depthInterval; depth < worldHeight; depth += depthInterval) {
+        const y = depth - cameraY;
+        if (y > dynamicWaterSurfaceY && y < canvas.height) {
+            ctx.fillText(`${Math.floor(depth/100)}m`, canvas.width - 70, y);
+            
+            ctx.beginPath();
+            ctx.setLineDash([5, 10]);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+    }
+    
+    // Sea floor with level-specific colors
+    const seaFloorY = worldHeight - cameraY;
+    if (seaFloorY < canvas.height + 50) {
+        ctx.fillStyle = currentLevel === 3 ? '#2d1810' : currentLevel === 2 ? '#654321' : '#8b4513';
+        ctx.fillRect(0, seaFloorY - 30, canvas.width, 80);
+        
+        // Floor details
+        ctx.fillStyle = currentLevel === 3 ? '#1a0f08' : currentLevel === 2 ? '#4a3218' : '#654321';
+        for (let x = 0; x < canvas.width; x += 120) {
+            const rockHeight = 20 + Math.random() * 25;
+            ctx.beginPath();
+            ctx.ellipse(
+                x + Math.random() * 100, 
+                seaFloorY - rockHeight/2, 
+                30 + Math.random() * 20, 
+                rockHeight/2, 
+                0, 0, Math.PI * 2
+            );
+            ctx.fill();
+        }
+    }
+}
+
+// REPLACE your existing drawWaves() function with this version:
+function drawWaves() {
+    const waveY = defaultWaterSurfaceY - cameraY * 0.25;
+    waterSurfaceY = waveY;
+    const colors = getCurrentLevelColors();
+    
+    // Use level-specific water color
+    ctx.fillStyle = colors.waterSurface;
+    ctx.beginPath();
+    ctx.moveTo(0, canvas.height);
+    ctx.lineTo(0, waveY);
+    
+    const time = Date.now() / 200;
+    for (let x = 0; x <= canvas.width; x += 10) {
+        const y = waveY + 
+                  Math.sin((x * 0.02) + time * 0.1) * 15 + 
+                  Math.sin((x * 0.01) + time * 0.2) * 8;
+        ctx.lineTo(x, y);
+    }
+    
+    ctx.lineTo(canvas.width, canvas.height);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Wave highlights
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    for (let x = 0; x <= canvas.width; x += 10) {
+        const y = waveY + 
+                  Math.sin((x * 0.02) + time * 0.1) * 15 + 
+                  Math.sin((x * 0.01) + time * 0.2) * 8;
+        if (x === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+    }
+    ctx.stroke();
+}
+
+// Simple function to apply CSS body colors for menus (optional)
+function applyMenuLevelColors(levelNumber) {
+    document.body.classList.remove('level-1', 'level-2', 'level-3');
+    document.body.classList.add(`level-${levelNumber}`);
+}
+
+// Add this to your level selection event listeners:
+// (This is optional - only for menu background colors)
+/*
+document.querySelectorAll('.level-card').forEach(card => {
+    card.addEventListener('click', () => {
+        currentLevel = parseInt(card.dataset.level);
+        applyMenuLevelColors(currentLevel); // Optional: for menu background
+        
+        document.getElementById('customizationTitle').textContent = 
+            `Level ${currentLevel}: Customization`;
+        levelSelect.style.display = 'none';
+        customizationScreen.style.display = 'flex';
+    });
+});
+*/
