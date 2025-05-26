@@ -1,4 +1,4 @@
-/* Deep Sea Fishing Adventure - Enhanced Level-Based Colors */
+/* Deep Sea Fishing Adventure - Enhanced Level-Based Colors with Original Images Only */
 
 * {
   box-sizing: border-box;
@@ -13,12 +13,12 @@ body, html {
   height: 100%;
   overflow: hidden;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: #000033; /* Changed to neutral dark blue instead of sky blue */
+  background: #000033;
 }
 
-/* Background Transitions - Reduced transition time to minimize flash */
+/* Background Transitions */
 #sky-background, #water-background {
-  transition: background 0.3s ease-in-out; /* Reduced from 1.2s to 0.3s */
+  transition: background 0.3s ease-in-out;
 }
 
 /* LEVEL 1: SHALLOW CORAL REEF - Bright tropical waters */
@@ -131,7 +131,7 @@ body.level-3 #water-background {
   pointer-events: none;
 }
 
-/* Default backgrounds (fallback) - Neutral dark colors to prevent orange flash */
+/* Default backgrounds (fallback) */
 #sky-background {
   position: fixed;
   top: 0;
@@ -139,11 +139,11 @@ body.level-3 #water-background {
   width: 100%;
   height: 35%;
   background: linear-gradient(to bottom, 
-    #000033 0%,     /* Dark blue */
-    #000044 25%,    /* Slightly lighter dark blue */
-    #000055 50%,    /* Medium dark blue */
-    #000066 75%,    /* Lighter dark blue */
-    #000077 100%    /* Lightest dark blue */
+    #000033 0%,
+    #000044 25%,
+    #000055 50%,
+    #000066 75%,
+    #000077 100%
   );
   z-index: 0;
   pointer-events: none;
@@ -156,11 +156,11 @@ body.level-3 #water-background {
   width: 100%;
   height: 65%;
   background: linear-gradient(to bottom, 
-    #000044 0%,     /* Dark blue */
-    #000055 25%,    /* Slightly darker */
-    #000066 50%,    /* Medium dark */
-    #000077 75%,    /* Lighter dark */
-    #000088 100%    /* Lightest dark */
+    #000044 0%,
+    #000055 25%,
+    #000066 50%,
+    #000077 75%,
+    #000088 100%
   );
   z-index: 1;
   pointer-events: none;
@@ -271,7 +271,7 @@ body.level-3 #water-surface {
   }
 }
 
-/* Boat - Keep it positioned at the top always */
+/* Boat */
 #boat {
   position: fixed;
   top: -10%;
@@ -318,7 +318,7 @@ body.level-3 #water-surface {
   user-select: none;
   box-shadow: 0 0 10px rgba(0, 0, 50, 0.5);
   text-align: center;
-  transition: all 0.3s ease; /* Reduced transition time */
+  transition: all 0.3s ease;
 }
 
 body.level-1 #hud {
@@ -361,7 +361,7 @@ body.level-3 #hud {
   border-radius: 5px;
   font-size: 14px;
   z-index: 15;
-  transition: all 0.3s ease; /* Reduced transition time */
+  transition: all 0.3s ease;
 }
 
 body.level-1 #controls-guide {
@@ -656,10 +656,16 @@ body.level-3 #controls-guide {
   cursor: pointer;
   transition: all 0.2s ease;
   border: 2px solid transparent;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .option-card:hover {
   background: rgba(0, 60, 120, 0.7);
+  transform: translateY(-2px);
 }
 
 .option-card.selected {
@@ -668,17 +674,28 @@ body.level-3 #controls-guide {
   box-shadow: 0 0 15px rgba(76, 175, 80, 0.6);
 }
 
+/* Image container for proper display */
 .option-image {
   width: 100%;
   height: 80px;
   object-fit: contain;
   margin-bottom: 10px;
   border-radius: 8px;
+  display: block;
+  max-width: 100%;
+  max-height: 80px;
+}
+
+/* Hide images that fail to load or have no src */
+.option-image:not([src]), 
+.option-image[src=""] {
+  display: none;
 }
 
 .option-card p {
   font-size: 0.9rem;
   margin: 0;
+  text-align: center;
 }
 
 .buttons-container {
@@ -715,37 +732,6 @@ body.level-3 #controls-guide {
   margin-bottom: 8px;
 }
 
-/* Boat and Hook placeholder styles */
-.boat-placeholder, .hook-placeholder {
-  width: 100%;
-  height: 80px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 3rem;
-  margin-bottom: 10px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  transition: all 0.2s ease;
-}
-
-.option-card:hover .boat-placeholder,
-.option-card:hover .hook-placeholder {
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.05);
-}
-
-.option-card.selected .boat-placeholder,
-.option-card.selected .hook-placeholder {
-  background: rgba(76, 175, 80, 0.3);
-  box-shadow: 0 0 15px rgba(76, 175, 80, 0.4);
-}
-
-/* If images fail to load, hide them */
-.option-image[src=""] {
-  display: none;
-}
-
 /* Media Queries */
 @media (max-width: 768px) {
   .menu-container {
@@ -777,6 +763,11 @@ body.level-3 #controls-guide {
   .instructions-container {
     grid-template-columns: 1fr;
   }
+  
+  .option-image {
+    height: 60px;
+    max-height: 60px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -787,5 +778,86 @@ body.level-3 #controls-guide {
   .level-details {
     flex-direction: column;
     gap: 5px;
+  }
+  
+  .option-image {
+    height: 50px;
+    max-height: 50px;
+  }
+}
+
+/* Performance optimizations */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.option-card,
+.menu-button,
+.level-card {
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .option-card:hover {
+    transform: translate3d(0, -2px, 0);
+  }
+  
+  .menu-button:hover {
+    transform: translate3d(0, -3px, 0);
+  }
+  
+  .level-card:hover {
+    transform: translate3d(0, -5px, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .option-card,
+  .menu-button,
+  .level-card,
+  .option-image {
+    transition: none;
+    animation: none;
+  }
+  
+  .option-card:hover,
+  .menu-button:hover,
+  .level-card:hover {
+    transform: none;
+  }
+}
+
+.menu-container {
+  contain: layout style;
+}
+
+.option-card {
+  contain: layout style paint;
+}
+
+.option-card,
+.level-card,
+.menu-button {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+body {
+  text-rendering: optimizeLegibility;
+  -webkit-font-feature-settings: "kern" 1;
+  font-feature-settings: "kern" 1;
+}
+
+@media print {
+  .overlay,
+  .menu-container,
+  .option-card,
+  .level-card {
+    display: none;
   }
 }
