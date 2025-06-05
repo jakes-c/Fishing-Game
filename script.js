@@ -1,5 +1,4 @@
 // Deep Sea Fishing Adventure - JavaScript Part 1: Core Setup (FIXED)
-// This works with your existing HTML and CSS files
 
 // Canvas and context setup
 const canvas = document.getElementById('gameCanvas');
@@ -906,29 +905,33 @@ function updateBoatPosition() {
 }
 // Draw fishing hook and line
 function drawHook() {
-  hook.y = hook.worldY - cameraY;
-  
-  const lineStartY = boat.y + 15;
-  
-  // Draw fishing line
-  ctx.beginPath();
-  ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
-  ctx.lineWidth = 2;
-  ctx.moveTo(hook.x, lineStartY);
-  
-  const lineLength = hook.y - lineStartY;
-  const controlX = hook.x + Math.sin(Date.now() / 2000) * 20;
-  const controlY = lineStartY + lineLength * 0.5;
-  
-  if (lineLength > 100) {
-    ctx.quadraticCurveTo(controlX, controlY, hook.x, hook.y);
-  } else {
-    ctx.lineTo(hook.x, hook.y);
-  }
-  ctx.stroke();
-  
-  // Draw hook
-  ctx.drawImage(hookImg, hook.x - 15, hook.y, 30, 50);
+    hook.y = hook.worldY - cameraY;
+    
+    // Calculate boat's current position on screen
+    const boatScreenX = boat.x;
+    const boatScreenY = boat.y;
+    const lineStartX = boatScreenX; // Line starts from boat's center
+    const lineStartY = boatScreenY + 15; // Slightly below boat
+    
+    // Draw fishing line
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.lineWidth = 2;
+    ctx.moveTo(lineStartX, lineStartY);
+    
+    const lineLength = hook.y - lineStartY;
+    const controlX = lineStartX + (hook.x - lineStartX) * 0.5 + Math.sin(Date.now() / 2000) * 20;
+    const controlY = lineStartY + lineLength * 0.5;
+    
+    if (lineLength > 100) {
+        ctx.quadraticCurveTo(controlX, controlY, hook.x, hook.y);
+    } else {
+        ctx.lineTo(hook.x, hook.y);
+    }
+    ctx.stroke();
+    
+    // Draw hook
+    ctx.drawImage(hookImg, hook.x - 15, hook.y, 30, 50);
 }
 
 // Camera system
@@ -1920,3 +1923,5 @@ function spawnFishWithPreloader() {
 // spawnFish = spawnFishWithPreloader;
 
 console.log('Image preloader system loaded successfully!');
+
+
