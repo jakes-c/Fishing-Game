@@ -60,6 +60,125 @@ const levelConfigs = {
     scoreMultiplier: 2
   }
 };
+// Fish database with names, points, and depth zones
+const fishDatabase = {
+  'fish1.png': { name: 'Goldfish', points: 10, depth: 'Shallow' },
+  'fish2.png': { name: 'Clownfish', points: 15, depth: 'Shallow' },
+  'fish3.png': { name: 'Angelfish', points: 25, depth: 'Mid Ocean' },
+  'fish4.png': { name: 'Blue Tang', points: 30, depth: 'Mid Ocean' },
+  'fish5.png': { name: 'Parrotfish', points: 35, depth: 'Mid Ocean' },
+  'fish6.png': { name: 'Grouper', points: 50, depth: 'Deep Sea' },
+  'fish7.png': { name: 'Tuna', points: 60, depth: 'Deep Sea' },
+  'fish8.png': { name: 'Giant Squid', points: 100, depth: 'Abyss' }
+};
+// Update fish collection panel
+function updateFishPanel() {
+  const fishStats = document.getElementById('fishStats');
+  const multiplier = document.getElementById('multiplier');
+  const levelMultiplierDisplay = document.getElementById('levelMultiplierDisplay');
+  
+  if (!fishStats) return;
+  
+  // Update multiplier display
+  const config = levelConfigs[currentLevel];
+  if (multiplier) multiplier.textContent = config.scoreMultiplier;
+  if (levelMultiplierDisplay) levelMultiplierDisplay.textContent = currentLevel;
+  
+  // Clear existing fish items
+  fishStats.innerHTML = '';
+  
+  // Get fish types for current level
+  const levelFishTypes = levelConfigs[currentLevel].fishTypes;
+  
+  // Create fish items for current level
+  levelFishTypes.forEach(fishType => {
+    const fishInfo = fishDatabase[fishType];
+    if (!fishInfo) return;
+    
+    const count = caughtFishCounts[fishType] || 0;
+    const totalPoints = count * fishInfo.points * config.scoreMultiplier;
+    
+    const fishItem = document.createElement('div');
+    fishItem.className = 'fish-item';
+    fishItem.innerHTML = `
+      <div class="fish-info">
+        <div class="fish-name">${fishInfo.name}</div>
+        <div class="fish-depth">${fishInfo.depth}</div>
+      </div>
+      <div class="fish-stats-right">
+        <div class="fish-count">${count}</div>
+        <div class="fish-points">${fishInfo.points}pts</div>
+      </div>
+    `;
+    
+    fishStats.appendChild(fishItem);
+  });
+}
+// Function to handle fish catching (add this or modify existing)
+function catchFish(fish) {
+  if (fish.caught) return;
+  
+  fish.caught = true;
+  hook.attachedFishes.push(fish);
+  
+  // Get fish type from image src
+  const fishType = fish.image.src.split('/').pop();
+  const fishInfo = fishDatabase[fishType];
+  
+  if (fishInfo) {
+    // Update caught fish count
+    if (!caughtFishCounts[fishType]) {
+      caughtFishCounts[fishType] = 0;
+    }
+    caughtFishCounts[fishType]++;
+    
+    // Update fish panel
+    updateFishPanel();
+    
+    // Play catch sound
+    if (sounds.catch) {
+      sounds.catch.currentTime = 0;
+      sounds.catch.play().catch(() => {});
+    }
+  }
+}
+// Function to deliver fish to boat and score points
+function deliverFishToBoat() {
+  if (hook.attachedFishes.length === 0) return;
+  
+  const config = levelConfigs[currentLevel];
+  let totalPoints = 0;
+  
+  hook.attachedFishes.forEach(fish => {
+    if (!fish.deliveredToBoat) {
+      const fishType = fish.image.src.split('/').pop();
+      const fishInfo = fishDatabase[fishType];
+      
+      if (fishInfo) {
+        const points = fishInfo.points * config.scoreMultiplier;
+        totalPoints += points;
+        fish.deliveredToBoat = true;
+      }
+    }
+  });
+  
+  score += totalPoints;
+  
+  // Clear delivered fish
+  hook.attachedFishes = hook.attachedFishes.filter(fish => !fish.deliveredToBoat);
+  
+  // Update UI
+  updateUI();
+  updateFishPanel();
+  
+  // Play scoring sound
+  if (sounds.coin && totalPoints > 0) {
+    sounds.coin.currentTime = 0;
+    sounds.coin.play().catch(() => {});
+  }
+}
+// Track caught fish by type
+let caughtFishCounts = {};
 
 // Game world settings - FIXED
 let worldHeight = 2000;
@@ -249,15 +368,19 @@ function gameTimer() {
 }
 
 // FIXED: Update UI function
+// Update your existing updateUI function
 function updateUI() {
-  // Update score and time display
-  const scoreElement = document.querySelector('.score');
-  const timeElement = document.querySelector('.time');
-  const levelElement = document.querySelector('.level-display');
+  // Update HUD elements
+  const scoreElement = document.getElementById('score');
+  const timeElement = document.getElementById('time');
+  const levelElement = document.getElementById('current-level');
   
-  if (scoreElement) scoreElement.textContent = `Score: ${score}`;
-  if (timeElement) timeElement.textContent = `Time: ${timeLeft}s`;
-  if (levelElement) levelElement.textContent = `Level: ${currentLevel}`;
+  if (scoreElement) scoreElement.textContent = score;
+  if (timeElement) timeElement.textContent = timeLeft;
+  if (levelElement) levelElement.textContent = currentLevel;
+  
+  // Update fish panel
+  updateFishPanel();
 }
 
 // Placeholder functions for game entities
@@ -571,7 +694,7 @@ window.addEventListener('resize', () => {
 
 // Fish class
 class Fish {
-  constructor(x, worldY, speed, image, direction, depth, value = 1) {
+  constructor(x, worldY, speed, image, direction, depth) {
     this.x = x;
     this.worldY = worldY;
     this.speed = speed;
@@ -612,10 +735,23 @@ class Fish {
     this.caught = false;
     this.direction = direction;
     this.depth = depth;
-    this.value = value; // Points this fish is worth
     this.deliveredToBoat = false;
+    
+    // Get fish info from database
+    const fishType = imageName;
+    const fishInfo = fishDatabase[fishType];
+    
+    if (fishInfo) {
+      this.value = fishInfo.points;
+      this.name = fishInfo.name;
+    } else {
+      this.value = 10; // Default value
+      this.name = 'Unknown Fish';
+    }
   }
   
+  // ... rest of your existing Fish class methods ...
+
   draw() {
     const screenY = this.worldY - cameraY;
     
@@ -1178,6 +1314,10 @@ function endGame(levelComplete = false) {
   gameActive = false;
   gameOver = true;
   
+  // Hide side panels when game ends
+  document.getElementById('leftPanel').style.display = 'none';
+  document.getElementById('rightPanel').style.display = 'none';
+  
   document.getElementById('finalScore').textContent = `Your Score: ${score}`;
   document.getElementById('levelCompleted').textContent = 
     levelComplete ? `Level ${currentLevel} Completed!` : `Time's Up!`;
@@ -1204,6 +1344,16 @@ function startGame() {
   targetCameraY = 0;
   waterSurfaceY = defaultWaterSurfaceY;
   
+  // Reset caught fish counts
+  caughtFishCounts = {};
+  
+  // Initialize fish panel
+  updateFishPanel();
+  
+  // Show side panels when game starts
+  document.getElementById('leftPanel').style.display = 'block';
+  document.getElementById('rightPanel').style.display = 'block';
+  
   // Reset boat position
   boat.worldY = boat.defaultWorldY;
   boatElement.style.top = (boat.y - 300) + 'px';
@@ -1212,6 +1362,15 @@ function startGame() {
   document.getElementById('score').textContent = score;
   document.getElementById('time').textContent = timeLeft;
   document.getElementById('current-level').textContent = currentLevel;
+  
+  // Update level multiplier in right panel
+  document.getElementById('multiplier').textContent = currentLevel;
+  
+  // Reset fish collection counts in right panel
+  const fishItems = document.querySelectorAll('.fish-count');
+  fishItems.forEach(item => {
+    item.textContent = '0';
+  });
   
   // Reset hook state
   hook.isMovingDown = false;
@@ -1225,13 +1384,12 @@ function startGame() {
   loadLevelAssets();
   
   // Wait a bit for images to load
- // In your startGame function, replace the setTimeout section with:
-setTimeout(() => {
+  setTimeout(() => {
     spawnFishWithPreloader(); // Instead of spawnFish()
     spawnObstacles();
     update();
     startTimer();
-}, 100);
+  }, 100);
 }
 
 // End screen button handlers
@@ -1923,5 +2081,155 @@ function spawnFishWithPreloader() {
 // spawnFish = spawnFishWithPreloader;
 
 console.log('Image preloader system loaded successfully!');
+// ==================== SIDEBAR FUNCTIONS ====================
 
+// Show sidebars when game starts
+function showGameSidebars() {
+  const leftSidebar = document.getElementById('left-sidebar');
+  const rightSidebar = document.getElementById('right-sidebar');
+  
+  if (leftSidebar) leftSidebar.style.display = 'block';
+  if (rightSidebar) rightSidebar.style.display = 'block';
+}
+
+// Hide sidebars when game ends or in menus
+function hideGameSidebars() {
+  const leftSidebar = document.getElementById('left-sidebar');
+  const rightSidebar = document.getElementById('right-sidebar');
+  
+  if (leftSidebar) leftSidebar.style.display = 'none';
+  if (rightSidebar) rightSidebar.style.display = 'none';
+}
+
+// Update fish count in right sidebar
+function updateSidebarFishCount(fishType) {
+  const fishItem = document.querySelector(`#right-sidebar [data-fish-type="${fishType}"]`);
+  if (fishItem) {
+    const countElement = fishItem.querySelector('.fish-count');
+    if (countElement) {
+      let currentCount = parseInt(countElement.textContent) || 0;
+      countElement.textContent = currentCount + 1;
+      
+      // Add visual feedback
+      fishItem.style.backgroundColor = 'rgba(0, 255, 136, 0.2)';
+      setTimeout(() => {
+        fishItem.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+      }, 300);
+      
+      updateSidebarTotal();
+    }
+  }
+}
+
+// Update total score in sidebar
+function updateSidebarTotal() {
+  let total = 0;
+  const fishItems = document.querySelectorAll('#right-sidebar .fish-item');
+  
+  fishItems.forEach(fishItem => {
+    const countElement = fishItem.querySelector('.fish-count');
+    const scoreElement = fishItem.querySelector('.fish-score');
+    
+    if (countElement && scoreElement) {
+      const count = parseInt(countElement.textContent) || 0;
+      const scoreText = scoreElement.textContent;
+      const pointsMatch = scoreText.match(/(\d+)pts/);
+      
+      if (pointsMatch) {
+        const points = parseInt(pointsMatch[1]);
+        total += count * points;
+      }
+    }
+  });
+  
+  const totalElement = document.getElementById('sidebar-total');
+  if (totalElement) {
+    totalElement.textContent = total;
+  }
+}
+
+// Reset sidebar counts
+function resetSidebarCounts() {
+  const countElements = document.querySelectorAll('#right-sidebar .fish-count');
+  countElements.forEach(element => {
+    element.textContent = '0';
+  });
+  
+  const totalElement = document.getElementById('sidebar-total');
+  if (totalElement) {
+    totalElement.textContent = '0';
+  }
+}
+
+// Get fish type based on fish properties (you can customize this logic)
+function getFishType(fish) {
+  // Example logic - customize based on your fish object structure
+  if (fish.points <= 10) return 'common';
+  else if (fish.points <= 25) return 'tropical';
+  else if (fish.points <= 50) return 'shark';
+  else if (fish.points <= 75) return 'octopus';
+  else return 'squid';
+}
+
+// Initialize sidebars when DOM is loaded
+function initializeSidebars() {
+  // Hide sidebars initially
+  hideGameSidebars();
+  
+  // Add event listeners for better interaction
+  const fishItems = document.querySelectorAll('#right-sidebar .fish-item');
+  fishItems.forEach(item => {
+    item.addEventListener('mouseenter', function() {
+      this.style.transform = 'translateX(-3px)';
+    });
+    
+    item.addEventListener('mouseleave', function() {
+      this.style.transform = 'translateX(0)';
+    });
+  });
+}
+
+// Call this function when your game loads
+document.addEventListener('DOMContentLoaded', function() {
+  initializeSidebars();
+});
+
+// ==================== INTEGRATION HELPERS ====================
+
+// Call this when starting a new game
+function startGameWithSidebars() {
+  showGameSidebars();
+  resetSidebarCounts();
+}
+
+// Call this when game ends
+function endGameWithSidebars() {
+  hideGameSidebars();
+}
+
+// Call this when catching a fish
+function catchFishWithSidebar(fish) {
+  const fishType = getFishType(fish);
+  updateSidebarFishCount(fishType);
+}
+
+// Call this when going back to menus
+function backToMenuWithSidebars() {
+  hideGameSidebars();
+}
+
+// ==================== EXAMPLE USAGE ====================
+/*
+// In your existing game start function, add:
+startGameWithSidebars();
+
+// In your existing fish catching function, add:
+catchFishWithSidebar(caughtFish);
+
+// In your existing game end function, add:
+endGameWithSidebars();
+
+// In your existing back to menu functions, add:
+backToMenuWithSidebars();
+*/
 
