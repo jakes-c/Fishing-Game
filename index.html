@@ -182,6 +182,59 @@
   <img id="boat" src="assets/boat1.png" alt="Boat" loading="eager" />
   <canvas id="gameCanvas"></canvas>
 
+  <!-- Left Side Panel - Game Controls -->
+  <div id="leftPanel" class="side-panel left-panel" style="display:none;">
+    <div class="panel-header">
+      <h3>🎮 Controls</h3>
+    </div>
+    <div class="panel-content">
+      <div class="controls-section">
+        <div class="control-item">
+          <span class="key-badge">W</span>
+          <span>Reel Up</span>
+        </div>
+        <div class="control-item">
+          <span class="key-badge">S</span>
+          <span>Lower</span>
+        </div>
+        <div class="control-item">
+          <span class="key-badge">A</span>
+          <span>Left</span>
+        </div>
+        <div class="control-item">
+          <span class="key-badge">D</span>
+          <span>Right</span>
+        </div>
+      </div>
+      
+      <div class="tips-section">
+        <h4>💡 Tips:</h4>
+        <ul>
+          <li>• Return to surface to score</li>
+          <li>• Avoid obstacles</li>
+          <li>• Deeper = more points</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side Panel - Fish Collection -->
+  <div id="rightPanel" class="side-panel right-panel" style="display:none;">
+    <div class="panel-header">
+      <h3>🐠 Fish Collection</h3>
+    </div>
+    <div class="panel-content">
+      <div class="fish-stats" id="fishStats">
+        <!-- Fish items will be dynamically populated based on level -->
+      </div>
+      
+      <div class="level-multiplier">
+        <h4>Multiplier: x<span id="multiplier">1</span></h4>
+        <p class="multiplier-note">Level <span id="levelMultiplierDisplay">1</span> Bonus</p>
+      </div>
+    </div>
+  </div>
+
   <div id="hud">
     <div id="scoreboard">🎣 Score: <span id="score">0</span></div>
     <div id="timer">⏳ Time: <span id="time">60</span>s</div>
@@ -196,6 +249,217 @@
       <li>A/D - Move hook left/right</li>
     </ul>
   </div>
+
+  <style>
+    /* Side Panel Styles - Updated */
+    .side-panel {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 200px;
+      background: rgba(20, 50, 80, 0.95);
+      border: 2px solid rgba(70, 130, 180, 0.8);
+      border-radius: 10px;
+      backdrop-filter: blur(10px);
+      z-index: 100;
+      font-family: Arial, sans-serif;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .left-panel {
+      left: 15px;
+    }
+    
+    .right-panel {
+      right: 15px;
+    }
+    
+    .panel-header {
+      background: rgba(30, 60, 90, 0.9);
+      padding: 8px 12px;
+      border-radius: 8px 8px 0 0;
+      border-bottom: 2px solid rgba(70, 130, 180, 0.5);
+    }
+    
+    .panel-header h3 {
+      margin: 0;
+      color: #87CEEB;
+      font-size: 14px;
+      text-align: center;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    
+    .panel-content {
+      padding: 12px;
+      color: white;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    .controls-section h4,
+    .tips-section h4 {
+      color: #FFD700;
+      margin: 0 0 6px 0;
+      font-size: 12px;
+    }
+    
+    .control-item {
+      display: flex;
+      align-items: center;
+      margin: 4px 0;
+      gap: 8px;
+    }
+    
+    .key-badge {
+      background: #FFD700;
+      color: #000;
+      padding: 3px 6px;
+      border-radius: 3px;
+      font-weight: bold;
+      font-size: 10px;
+      min-width: 16px;
+      text-align: center;
+    }
+    
+    .control-item span:last-child {
+      font-size: 12px;
+    }
+    
+    .tips-section {
+      margin-top: 12px;
+    }
+    
+    .tips-section ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    
+    .tips-section li {
+      margin: 3px 0;
+      font-size: 10px;
+      line-height: 1.3;
+    }
+    
+    .fish-stats {
+      margin-bottom: 12px;
+    }
+    
+    .fish-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 6px 0;
+      padding: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      font-size: 10px;
+      transition: background-color 0.3s ease;
+    }
+    
+    .fish-item:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+    
+    .fish-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .fish-name {
+      color: #87CEEB;
+      font-weight: bold;
+      margin-bottom: 2px;
+    }
+    
+    .fish-depth {
+      color: #B0C4DE;
+      font-size: 8px;
+    }
+    
+    .fish-stats-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+    }
+    
+    .fish-count {
+      background: #4169E1;
+      color: white;
+      padding: 2px 6px;
+      border-radius: 8px;
+      min-width: 20px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 9px;
+    }
+    
+    .fish-points {
+      color: #FFD700;
+      font-size: 9px;
+      font-weight: bold;
+    }
+    
+    .level-multiplier {
+      text-align: center;
+      padding: 8px;
+      background: rgba(255, 215, 0, 0.2);
+      border-radius: 6px;
+      border: 1px solid rgba(255, 215, 0, 0.5);
+    }
+    
+    .level-multiplier h4 {
+      margin: 0 0 4px 0;
+      color: #FFD700;
+      font-size: 14px;
+    }
+    
+    .multiplier-note {
+      margin: 0;
+      color: #F0E68C;
+      font-size: 8px;
+    }
+    
+    /* Scrollbar for fish panel */
+    .panel-content::-webkit-scrollbar {
+      width: 4px;
+    }
+    
+    .panel-content::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+    }
+    
+    .panel-content::-webkit-scrollbar-thumb {
+      background: rgba(70, 130, 180, 0.8);
+      border-radius: 2px;
+    }
+    
+    /* Hide panels on smaller screens */
+    @media (max-width: 1200px) {
+      .side-panel {
+        display: none !important;
+      }
+    }
+    
+    /* Adjust for medium screens */
+    @media (max-width: 1400px) {
+      .side-panel {
+        width: 180px;
+      }
+      
+      .panel-content {
+        padding: 8px;
+      }
+      
+      .control-item span:last-child,
+      .fish-name {
+        font-size: 9px;
+      }
+    }
+  </style>
 
   <script src="script.js"></script>
 </body>
