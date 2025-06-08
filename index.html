@@ -12,7 +12,7 @@
 </head>
 <body>
   <!-- Image Preloader - Hidden elements to force image loading -->
-  <div class="image-preloader" aria-hidden="true">
+  <div class="image-preloader" aria-hidden="true" style="display:none;">
     <img src="assets/boat1.png" alt="" />
     <img src="assets/boat2.png" alt="" />
     <img src="assets/boat3.png" alt="" />
@@ -178,7 +178,7 @@
   <!-- Game Elements -->
   <div id="sky-background"></div>
   <div id="water-background"></div>
-  <div id="water-surface"></div>
+  <!-- REMOVE the water-surface div: it is now handled by canvas! -->
   <img id="boat" src="assets/boat1.png" alt="Boat" loading="eager" />
   <canvas id="gameCanvas"></canvas>
 
