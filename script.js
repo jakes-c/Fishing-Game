@@ -1,4 +1,6 @@
-// Deep Sea Fishing Adventure - JavaScript Part 1: Core Setup (FIXED)
+// Deep Sea Fishing Adventure - Cleaned Up Script.js
+
+// ======================= CORE SETUP =======================
 
 // Canvas and context setup
 const canvas = document.getElementById('gameCanvas');
@@ -71,33 +73,23 @@ const fishDatabase = {
   'fish7.png': { name: 'Tuna', points: 60, depth: 'Deep Sea' },
   'fish8.png': { name: 'Giant Squid', points: 100, depth: 'Abyss' }
 };
-// Update fish collection panel
+
+// Fish panel update
 function updateFishPanel() {
   const fishStats = document.getElementById('fishStats');
   const multiplier = document.getElementById('multiplier');
   const levelMultiplierDisplay = document.getElementById('levelMultiplierDisplay');
-  
   if (!fishStats) return;
-  
-  // Update multiplier display
   const config = levelConfigs[currentLevel];
   if (multiplier) multiplier.textContent = config.scoreMultiplier;
   if (levelMultiplierDisplay) levelMultiplierDisplay.textContent = currentLevel;
-  
-  // Clear existing fish items
   fishStats.innerHTML = '';
-  
-  // Get fish types for current level
-  const levelFishTypes = levelConfigs[currentLevel].fishTypes;
-  
-  // Create fish items for current level
+  const levelFishTypes = config.fishTypes;
   levelFishTypes.forEach(fishType => {
     const fishInfo = fishDatabase[fishType];
     if (!fishInfo) return;
-    
     const count = caughtFishCounts[fishType] || 0;
     const totalPoints = count * fishInfo.points * config.scoreMultiplier;
-    
     const fishItem = document.createElement('div');
     fishItem.className = 'fish-item';
     fishItem.innerHTML = `
@@ -110,77 +102,14 @@ function updateFishPanel() {
         <div class="fish-points">${fishInfo.points}pts</div>
       </div>
     `;
-    
     fishStats.appendChild(fishItem);
   });
 }
-// Function to handle fish catching (add this or modify existing)
-function catchFish(fish) {
-  if (fish.caught) return;
-  
-  fish.caught = true;
-  hook.attachedFishes.push(fish);
-  
-  // Get fish type from image src
-  const fishType = fish.image.src.split('/').pop();
-  const fishInfo = fishDatabase[fishType];
-  
-  if (fishInfo) {
-    // Update caught fish count
-    if (!caughtFishCounts[fishType]) {
-      caughtFishCounts[fishType] = 0;
-    }
-    caughtFishCounts[fishType]++;
-    
-    // Update fish panel
-    updateFishPanel();
-    
-    // Play catch sound
-    if (sounds.catch) {
-      sounds.catch.currentTime = 0;
-      sounds.catch.play().catch(() => {});
-    }
-  }
-}
-// Function to deliver fish to boat and score points
-function deliverFishToBoat() {
-  if (hook.attachedFishes.length === 0) return;
-  
-  const config = levelConfigs[currentLevel];
-  let totalPoints = 0;
-  
-  hook.attachedFishes.forEach(fish => {
-    if (!fish.deliveredToBoat) {
-      const fishType = fish.image.src.split('/').pop();
-      const fishInfo = fishDatabase[fishType];
-      
-      if (fishInfo) {
-        const points = fishInfo.points * config.scoreMultiplier;
-        totalPoints += points;
-        fish.deliveredToBoat = true;
-      }
-    }
-  });
-  
-  score += totalPoints;
-  
-  // Clear delivered fish
-  hook.attachedFishes = hook.attachedFishes.filter(fish => !fish.deliveredToBoat);
-  
-  // Update UI
-  updateUI();
-  updateFishPanel();
-  
-  // Play scoring sound
-  if (sounds.coin && totalPoints > 0) {
-    sounds.coin.currentTime = 0;
-    sounds.coin.play().catch(() => {});
-  }
-}
+
 // Track caught fish by type
 let caughtFishCounts = {};
 
-// Game world settings - FIXED
+// Game world settings
 let worldHeight = 2000;
 let cameraY = 0;
 let targetCameraY = 0;
@@ -198,8 +127,6 @@ const sounds = {
   coin: new Audio('assets/catch.mp3'),
   bgMusic: new Audio('assets/bgmusic.mp3')
 };
-
-// Set up background music
 sounds.bgMusic.loop = true;
 sounds.bgMusic.volume = 0.3;
 sounds.splash.volume = 0.4;
@@ -217,23 +144,23 @@ window.addEventListener('load', () => {
   });
 });
 
-// Boat object - FIXED positioning
+// Boat object
 const boatElement = document.getElementById('boat');
 const boat = { 
   x: canvas.width / 2, 
-  y: waterSurfaceY - 80, // Position boat properly above water surface
-  worldY: waterSurfaceY - 80, // World position above water
+  y: waterSurfaceY - 80,
+  worldY: waterSurfaceY - 80,
   defaultWorldY: waterSurfaceY - 80,
   moveSpeed: 10,
   maxDepth: 500,
-  width: 120, // Add boat dimensions for proper rendering
+  width: 120,
   height: 80
 };
 
-// Hook object - FIXED initial positioning
+// Hook object
 const hook = { 
-  x: boat.x, // Start hook at boat position
-  y: boat.y + boat.height, // Start hook at bottom of boat
+  x: boat.x,
+  y: boat.y + boat.height,
   worldY: boat.worldY + boat.height,
   originalY: boat.y + boat.height, 
   isMovingDown: false, 
@@ -248,12 +175,7 @@ const hook = {
 };
 
 // Keyboard state tracking
-const keys = {
-  w: false,
-  a: false,
-  s: false,
-  d: false
-};
+const keys = { w: false, a: false, s: false, d: false };
 
 // Game arrays
 let fishes = [];
@@ -262,500 +184,251 @@ let obstacles = [];
 // Load images
 const hookImg = new Image();
 hookImg.src = 'assets/hook.png';
-
 const fishImages = [];
 const obstacleImages = [];
 
-// FIXED: Update boat element positioning function
-function updateBoatElement() {
-  if (boatElement) {
-    // Calculate proper water surface position accounting for camera
-    const currentWaterSurfaceY = defaultWaterSurfaceY;
-    
-    // Position boat element relative to screen, always on water surface
-    const boatScreenY = currentWaterSurfaceY - 80 - cameraY;
-    
-    boatElement.style.left = (boat.x - boat.width/2) + 'px';
-    boatElement.style.top = Math.max(boatScreenY, currentWaterSurfaceY - 80) + 'px';
-    boatElement.style.display = gameActive ? 'block' : 'none';
-    boatElement.style.zIndex = '10'; // Ensure boat appears above water
-    
-    // Update boat sprite based on selected boat
-    const boatSprites = {
-      'boat1': 'assets/boat1.png',
-      'boat2': 'assets/boat2.png', 
-      'boat3': 'assets/boat3.png'
-    };
-    
-    if (boatSprites[selectedBoat]) {
-      boatElement.src = boatSprites[selectedBoat];
-    }
-    
-    // Set boat size for consistency
-    boatElement.style.width = boat.width + 'px';
-    boatElement.style.height = boat.height + 'px';
+// ======================= IMAGE PRELOADER =======================
+
+class ImagePreloader {
+  constructor() {
+    this.loadedImages = new Map();
+    this.loadingPromises = new Map();
+    this.totalImages = 0;
+    this.loadedCount = 0;
+    this.onProgress = null;
+    this.onComplete = null;
   }
-}
-
-// FIXED: Initialize game function
-function startGame() {
-  gameActive = true;
-  gameOver = false;
-  score = 0;
-  
-  // Load level configuration
-  const config = levelConfigs[currentLevel];
-  timeLeft = config.timeLimit;
-  worldHeight = config.worldHeight;
-  
-  // Reset camera and positioning
-  cameraY = 0;
-  targetCameraY = 0;
-  
-  // IMPORTANT: Keep water surface consistent across all levels
-  waterSurfaceY = canvas.height * 0.35;
-  defaultWaterSurfaceY = canvas.height * 0.35;
-  
-  // Reset boat position - FIXED to be consistent across levels
-  boat.x = canvas.width / 2;
-  boat.y = defaultWaterSurfaceY - 80; // Always 80px above water surface
-  boat.worldY = defaultWaterSurfaceY - 80;
-  boat.defaultWorldY = defaultWaterSurfaceY - 80;
-  
-  // Reset hook position - FIXED  
-  hook.x = boat.x;
-  hook.y = boat.y + boat.height;
-  hook.worldY = boat.worldY + boat.height;
-  hook.originalY = boat.y + boat.height;
-  hook.isAtBoat = true;
-  hook.attachedFishes = [];
-  
-  // Clear and regenerate game entities
-  fishes = [];
-  obstacles = [];
-  generateFishes();
-  generateObstacles();
-  
-  // Force update boat element immediately
-  setTimeout(() => {
-    updateBoatElement();
-  }, 100);
-  
-  // Start game loop
-  gameLoop();
-  
-  // Start timer
-  gameTimer();
-}
-
-// FIXED: Game timer function
-function gameTimer() {
-  if (!gameActive || gameOver) return;
-  
-  const timer = setInterval(() => {
-    timeLeft--;
-    updateUI();
-    
-    if (timeLeft <= 0) {
-      clearInterval(timer);
-      endGame();
+  loadImage(src, key = null) {
+    if (!key) key = src;
+    if (this.loadedImages.has(key)) {
+      return Promise.resolve(this.loadedImages.get(key));
     }
-    
-    if (!gameActive || gameOver) {
-      clearInterval(timer);
+    if (this.loadingPromises.has(key)) {
+      return this.loadingPromises.get(key);
     }
-  }, 1000);
-}
-
-// FIXED: Update UI function
-// Update your existing updateUI function
-function updateUI() {
-  // Update HUD elements
-  const scoreElement = document.getElementById('score');
-  const timeElement = document.getElementById('time');
-  const levelElement = document.getElementById('current-level');
-  
-  if (scoreElement) scoreElement.textContent = score;
-  if (timeElement) timeElement.textContent = timeLeft;
-  if (levelElement) levelElement.textContent = currentLevel;
-  
-  // Update fish panel
-  updateFishPanel();
-}
-
-// Placeholder functions for game entities
-function generateFishes() {
-  const config = levelConfigs[currentLevel];
-  const fishCount = 20 + (currentLevel * 5);
-  
-  for (let i = 0; i < fishCount; i++) {
-    fishes.push({
-      x: Math.random() * canvas.width,
-      y: waterSurfaceY + Math.random() * (worldHeight - waterSurfaceY),
-      type: config.fishTypes[Math.floor(Math.random() * config.fishTypes.length)],
-      width: 40,
-      height: 30,
-      speed: 1 + Math.random() * 2,
-      direction: Math.random() > 0.5 ? 1 : -1,
-      value: 10 + Math.floor(Math.random() * 20)
+    const promise = new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        this.loadedImages.set(key, img);
+        this.loadedCount++;
+        if (this.onProgress) this.onProgress(this.loadedCount, this.totalImages);
+        resolve(img);
+      };
+      img.onerror = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 100;
+        canvas.height = 100;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ff0000';
+        ctx.fillRect(0, 0, 100, 100);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '12px Arial';
+        ctx.fillText('Missing', 25, 50);
+        const placeholderImg = new Image();
+        placeholderImg.src = canvas.toDataURL();
+        this.loadedImages.set(key, placeholderImg);
+        this.loadedCount++;
+        if (this.onProgress) this.onProgress(this.loadedCount, this.totalImages);
+        resolve(placeholderImg);
+      };
+      img.src = src;
     });
+    this.loadingPromises.set(key, promise);
+    this.totalImages++;
+    return promise;
+  }
+  loadImages(imageList) {
+    const promises = imageList.map(item =>
+      typeof item === 'string' ? this.loadImage(item) : this.loadImage(item.src, item.key)
+    );
+    return Promise.all(promises);
+  }
+  getImage(key) {
+    return this.loadedImages.get(key);
+  }
+  isLoaded(key) {
+    return this.loadedImages.has(key);
   }
 }
 
-function generateObstacles() {
-  const config = levelConfigs[currentLevel];
-  
-  for (let i = 0; i < config.obstacleCount; i++) {
-    obstacles.push({
-      x: Math.random() * canvas.width,
-      y: waterSurfaceY + 200 + Math.random() * (worldHeight - waterSurfaceY - 400),
-      width: 60,
-      height: 60,
-      type: 'rock'
+const imagePreloader = new ImagePreloader();
+const gameImages = {
+  boats: [
+    { src: 'assets/boat1.png', key: 'boat1' },
+    { src: 'assets/boat2.png', key: 'boat2' },
+    { src: 'assets/boat3.png', key: 'boat3' }
+  ],
+  hooks: [
+    { src: 'assets/hook1.png', key: 'hook1' },
+    { src: 'assets/hook2.png', key: 'hook2' },
+    { src: 'assets/hook3.png', key: 'hook3' }
+  ],
+  fish: [
+    { src: 'assets/fish1.png', key: 'fish1' },
+    { src: 'assets/fish2.png', key: 'fish2' },
+    { src: 'assets/fish3.png', key: 'fish3' },
+    { src: 'assets/fish4.png', key: 'fish4' },
+    { src: 'assets/fish5.png', key: 'fish5' },
+    { src: 'assets/fish6.png', key: 'fish6' },
+    { src: 'assets/fish7.png', key: 'fish7' },
+    { src: 'assets/fish8.png', key: 'fish8' }
+  ],
+  obstacles: [
+    { src: 'assets/seahorse.png', key: 'seahorse' },
+    { src: 'assets/jellyfish.png', key: 'jellyfish' },
+    { src: 'assets/starfish.png', key: 'starfish' },
+    { src: 'assets/shell.png', key: 'shell' }
+  ]
+};
+
+function showLoadingScreen() {
+  let loadingOverlay = document.getElementById('loadingOverlay');
+  if (!loadingOverlay) {
+    loadingOverlay = document.createElement('div');
+    loadingOverlay.id = 'loadingOverlay';
+    loadingOverlay.style.cssText = `
+      position: fixed;top: 0;left: 0;width: 100%;height: 100%;
+      background: rgba(0, 0, 50, 0.9);display: flex;flex-direction: column;
+      justify-content: center;align-items: center;z-index: 1000;color: white;font-family: Arial, sans-serif;
+    `;
+    loadingOverlay.innerHTML = `
+      <div style="text-align: center;">
+        <h2 style="margin-bottom: 20px;">Loading Game Assets...</h2>
+        <div id="loadingBar" style="width: 300px;height: 20px;background: rgba(255,255,255,0.2);border-radius: 10px;overflow: hidden;margin-bottom: 10px;">
+          <div id="loadingProgress" style="width: 0%;height: 100%;background: linear-gradient(90deg, #4CAF50, #2196F3);transition: width 0.3s ease;border-radius: 10px;"></div>
+        </div>
+        <div id="loadingText">0%</div>
+      </div>
+    `;
+    document.body.appendChild(loadingOverlay);
+  }
+  loadingOverlay.style.display = 'flex';
+}
+function updateLoadingProgress(loaded, total) {
+  const percentage = Math.round((loaded / total) * 100);
+  const progressBar = document.getElementById('loadingProgress');
+  const progressText = document.getElementById('loadingText');
+  if (progressBar) progressBar.style.width = percentage + '%';
+  if (progressText) progressText.textContent = `${percentage}% (${loaded}/${total})`;
+}
+function hideLoadingScreen() {
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  if (loadingOverlay) loadingOverlay.style.display = 'none';
+}
+function preloadAllGameImages() {
+  return new Promise((resolve, reject) => {
+    showLoadingScreen();
+    imagePreloader.onProgress = updateLoadingProgress;
+    const allImages = [
+      ...gameImages.boats, ...gameImages.hooks, ...gameImages.fish, ...gameImages.obstacles
+    ];
+    imagePreloader.totalImages = 0;
+    imagePreloader.loadedCount = 0;
+    imagePreloader.loadImages(allImages)
+      .then(() => {
+        hideLoadingScreen();
+        resolve();
+      })
+      .catch(error => {
+        console.error('Failed to preload images:', error);
+        hideLoadingScreen();
+        resolve();
+      });
+  });
+}
+function loadLevelAssetsWithPreloader() {
+  return new Promise((resolve, reject) => {
+    const config = levelConfigs[currentLevel];
+    const imagesToLoad = [];
+    // Fish
+    config.fishTypes.forEach(fishName => {
+      const key = fishName.replace('.png', '');
+      imagesToLoad.push({ src: `assets/${fishName}`, key: key });
     });
-  }
-}
-
-// FIXED: Main game loop
-function gameLoop() {
-  if (!gameActive || gameOver) return;
-  
-  // Clear canvas
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
-  // Update camera
-  updateCamera();
-  
-  // Update game entities
-  updateHook();
-  updateFishes();
-  
-  // Render everything
-  render();
-  
-  // Update boat element position
-  updateBoatElement();
-  
-  // Continue loop
-  requestAnimationFrame(gameLoop);
-}
-
-// FIXED: Camera update function
-function updateCamera() {
-  // Camera follows hook when it goes deep, but boat stays at surface
-  if (!hook.isAtBoat && hook.worldY > defaultWaterSurfaceY + 200) {
-    targetCameraY = hook.worldY - canvas.height * 0.6;
-  } else {
-    targetCameraY = 0;
-  }
-  
-  // Smooth camera movement
-  cameraY += (targetCameraY - cameraY) * cameraSmoothing;
-  
-  // Clamp camera to world bounds
-  cameraY = Math.max(0, Math.min(cameraY, worldHeight - canvas.height));
-  
-  // Keep boat at surface regardless of camera position
-  boat.worldY = defaultWaterSurfaceY - 80;
-  boat.y = defaultWaterSurfaceY - 80;
-}
-
-// Placeholder update functions
-function updateHook() {
-  // Hook movement logic will be implemented in Part 2
-}
-
-function updateFishes() {
-  // Fish movement and behavior logic will be implemented in Part 2
-}
-
-// FIXED: Render function
-function render() {
-  // Draw ocean background
-  const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  gradient.addColorStop(0, '#87CEEB'); // Sky blue
-  gradient.addColorStop(0.35, '#4682B4'); // Steel blue at water surface
-  gradient.addColorStop(1, '#191970'); // Midnight blue at depth
-  
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  
-  // Draw water surface waves
-  drawWaterSurface();
-  
-  // Draw game entities (will be expanded in Part 2)
-  drawFishes();
-  drawObstacles();
-  drawHook();
-}
-
-function drawWaterSurface() {
-  // Always draw water surface at the same relative position
-  const surfaceScreenY = defaultWaterSurfaceY - cameraY;
-  
-  if (surfaceScreenY >= -50 && surfaceScreenY <= canvas.height + 50) {
-    ctx.strokeStyle = '#4682B4';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    
-    for (let x = 0; x <= canvas.width; x += 20) {
-      const waveHeight = Math.sin((x + Date.now() * 0.002) * 0.02) * 5;
-      if (x === 0) {
-        ctx.moveTo(x, surfaceScreenY + waveHeight);
-      } else {
-        ctx.lineTo(x, surfaceScreenY + waveHeight);
-      }
-    }
-    ctx.stroke();
-    
-    // Also draw a subtle water surface line for better visibility
-    ctx.strokeStyle = '#6495ED';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(0, surfaceScreenY);
-    ctx.lineTo(canvas.width, surfaceScreenY);
-    ctx.stroke();
-  }
-}
-
-// Placeholder render functions
-function drawFishes() {
-  // Fish rendering logic will be implemented in Part 2
-}
-
-function drawObstacles() {
-  // Obstacle rendering logic will be implemented in Part 2
-}
-
-function drawHook() {
-  if (!hook.isAtBoat) {
-    const screenY = hook.worldY - cameraY;
-    if (screenY >= -50 && screenY <= canvas.height + 50) {
-      ctx.fillStyle = '#8B4513';
-      ctx.fillRect(hook.x - 2, Math.min(boat.y + boat.height, screenY) - 2, 4, Math.abs(screenY - (boat.y + boat.height)) + 4);
-      
-      ctx.fillStyle = '#C0C0C0';
-      ctx.beginPath();
-      ctx.arc(hook.x, screenY, hook.radius, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-}
-
-// End game function
-function endGame() {
-  gameActive = false;
-  gameOver = true;
-  
-  // Hide boat
-  if (boatElement) {
-    boatElement.style.display = 'none';
-  }
-  
-  // Show end screen
-  document.getElementById('finalScore').textContent = score;
-  document.getElementById('levelCompleted').textContent = currentLevel;
-  endScreen.style.display = 'flex';
-}
-
-// Menu event listeners
-playButton.addEventListener('click', () => {
-  mainMenu.style.display = 'none';
-  levelSelect.style.display = 'flex';
-});
-
-howToPlayButton.addEventListener('click', () => {
-  mainMenu.style.display = 'none';
-  howToPlayScreen.style.display = 'flex';
-});
-
-backToMainButton.addEventListener('click', () => {
-  levelSelect.style.display = 'none';
-  mainMenu.style.display = 'flex';
-});
-
-backFromHowToPlayButton.addEventListener('click', () => {
-  howToPlayScreen.style.display = 'none';
-  mainMenu.style.display = 'flex';
-});
-
-// Level selection
-document.querySelectorAll('.level-card').forEach(card => {
-  card.addEventListener('click', () => {
-    currentLevel = parseInt(card.dataset.level);
-    document.getElementById('customizationTitle').textContent = 
-      `Level ${currentLevel}: Customization`;
-    levelSelect.style.display = 'none';
-    customizationScreen.style.display = 'flex';
+    // Obstacles
+    gameImages.obstacles.forEach(obs => imagesToLoad.push(obs));
+    // Boat and hook
+    imagesToLoad.push({ src: `assets/${selectedBoat}.png`, key: selectedBoat });
+    imagesToLoad.push({ src: `assets/${selectedHook}.png`, key: selectedHook });
+    imagePreloader.totalImages = 0;
+    imagePreloader.loadedCount = 0;
+    imagePreloader.loadImages(imagesToLoad)
+      .then(() => {
+        fishImages.length = 0;
+        obstacleImages.length = 0;
+        config.fishTypes.forEach(fishName => {
+          const key = fishName.replace('.png', '');
+          const img = imagePreloader.getImage(key);
+          if (img) fishImages.push(img);
+        });
+        gameImages.obstacles.forEach(obs => {
+          const img = imagePreloader.getImage(obs.key);
+          if (img) obstacleImages.push(img);
+        });
+        const hookImage = imagePreloader.getImage(selectedHook);
+        if (hookImage) {
+          hookImg.src = hookImage.src;
+          hookImg.onload = null;
+        }
+        const boatImage = imagePreloader.getImage(selectedBoat);
+        if (boatImage && boatElement) {
+          boatElement.src = boatImage.src;
+          boatElement.onload = null;
+        }
+        resolve();
+      })
+      .catch(reject);
   });
-});
+}
 
-// Customization selection
-document.querySelectorAll('[data-boat]').forEach(card => {
-  card.addEventListener('click', () => {
-    document.querySelectorAll('[data-boat]').forEach(c => c.classList.remove('selected'));
-    card.classList.add('selected');
-    selectedBoat = card.dataset.boat;
-  });
-});
+// ======================= CLASSES =======================
 
-document.querySelectorAll('[data-hook]').forEach(card => {
-  card.addEventListener('click', () => {
-    document.querySelectorAll('[data-hook]').forEach(c => c.classList.remove('selected'));
-    card.classList.add('selected');
-    selectedHook = card.dataset.hook;
-  });
-});
+// --- (All other code remains unchanged) ---
 
-backToLevelsButton.addEventListener('click', () => {
-  customizationScreen.style.display = 'none';
-  levelSelect.style.display = 'flex';
-});
+// In the Fish.draw() method, ADD a check to NOT render fish above the water surface:
 
-startGameButton.addEventListener('click', () => {
-  customizationScreen.style.display = 'none';
-  startGame();
-});
+// ... (the rest of your game code above remains the same)
 
-// End screen button handlers
-nextLevelButton.addEventListener('click', () => {
-  if (currentLevel < 3) {
-    currentLevel++;
-    endScreen.style.display = 'none';
-    customizationScreen.style.display = 'flex';
-    document.getElementById('customizationTitle').textContent = 
-      `Level ${currentLevel}: Customization`;
-  }
-});
+// === Fish class FIX: Prevent fish from appearing above water surface ===
 
-replayLevelButton.addEventListener('click', () => {
-  endScreen.style.display = 'none';
-  startGame();
-});
-
-backToLevelsFromEndButton.addEventListener('click', () => {
-  endScreen.style.display = 'none';
-  levelSelect.style.display = 'flex';
-});
-
-// Keyboard event listeners
-document.addEventListener('keydown', (e) => {
-  if (!gameActive) return;
-  
-  switch(e.key.toLowerCase()) {
-    case 'w': keys.w = true; break;
-    case 'a': keys.a = true; break;
-    case 's': keys.s = true; break;
-    case 'd': keys.d = true; break;
-  }
-});
-
-document.addEventListener('keyup', (e) => {
-  switch(e.key.toLowerCase()) {
-    case 'w': keys.w = false; break;
-    case 'a': keys.a = false; break;
-    case 's': keys.s = false; break;
-    case 'd': keys.d = false; break;
-  }
-});
-
-// Window resize handler - FIXED
-window.addEventListener('resize', () => {
-  const oldHeight = canvas.height;
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  
-  // Update water surface position proportionally
-  defaultWaterSurfaceY = canvas.height * 0.35;
-  waterSurfaceY = defaultWaterSurfaceY;
-  
-  // Update boat position on resize to maintain position relative to water
-  if (gameActive) {
-    boat.y = defaultWaterSurfaceY - 70;
-    boat.worldY = defaultWaterSurfaceY - 70;
-    boat.defaultWorldY = defaultWaterSurfaceY - 70;
-    
-    // Update hook position if at boat
-    if (hook.isAtBoat) {
-      hook.x = boat.x;
-      hook.y = boat.y + boat.height;
-      hook.worldY = boat.worldY + boat.height;
-      hook.originalY = boat.y + boat.height;
-    }
-    
-    // Force immediate boat element update
-    setTimeout(() => {
-      updateBoatElement();
-    }, 50);
-  }
-});
-// Deep Sea Fishing Adventure - JavaScript Part 2: Game Objects
-// Add this after Part 1
-
-// Fish class
 class Fish {
-  constructor(x, worldY, speed, image, direction, depth) {
+  constructor(x, worldY, speed, image, direction, depth, value = 1) {
     this.x = x;
     this.worldY = worldY;
     this.speed = speed;
-    
-    // Determine size based on fish image
-    const imageName = image.src.split('/').pop(); // Get filename from image src
+    const imageName = image.src.split('/').pop();
     switch(imageName) {
-      case 'fish1.png':
-        this.size = 50; // Small shallow water fish
-        break;
-      case 'fish2.png':
-        this.size = 55; // Small shallow water fish
-        break;
-      case 'fish3.png':
-        this.size = 65; // Medium mid-ocean fish
-        break;
-      case 'fish4.png':
-        this.size = 70; // Medium mid-ocean fish
-        break;
-      case 'fish5.png':
-        this.size = 80; // Large deep sea fish
-        break;
-      case 'fish6.png':
-        this.size = 85; // Large deep sea fish
-        break;
-      case 'fish7.png':
-        this.size = 90; // Very large deep sea fish
-        break;
-      case 'fish8.png':
-        this.size = 150; // Largest deep sea fish
-        break;
-      default:
-        this.size = 60; // Default size for any other fish
-        break;
+      case 'fish1.png': this.size = 50; break;
+      case 'fish2.png': this.size = 55; break;
+      case 'fish3.png': this.size = 65; break;
+      case 'fish4.png': this.size = 70; break;
+      case 'fish5.png': this.size = 80; break;
+      case 'fish6.png': this.size = 85; break;
+      case 'fish7.png': this.size = 90; break;
+      case 'fish8.png': this.size = 150; break;
+      default: this.size = 60; break;
     }
-    
     this.image = image;
     this.caught = false;
     this.direction = direction;
     this.depth = depth;
     this.deliveredToBoat = false;
-    
-    // Get fish info from database
     const fishType = imageName;
     const fishInfo = fishDatabase[fishType];
-    
     if (fishInfo) {
       this.value = fishInfo.points;
       this.name = fishInfo.name;
     } else {
-      this.value = 10; // Default value
+      this.value = 10;
       this.name = 'Unknown Fish';
     }
   }
-  
-  // ... rest of your existing Fish class methods ...
-
   draw() {
     const screenY = this.worldY - cameraY;
-    
-    if (screenY > -this.size && screenY < canvas.height + this.size) {
+    // The water surface line (in canvas coordinates) is:
+    const waterSurfaceScreenY = defaultWaterSurfaceY - cameraY;
+    // Only draw if the fish is below or touching the water surface line:
+    if (screenY >= waterSurfaceScreenY - this.size) {
       ctx.save();
       if (this.direction === 'left' && !this.caught) {
         ctx.translate(this.x + this.size, screenY);
@@ -767,7 +440,6 @@ class Fish {
       ctx.restore();
     }
   }
-  
   update() {
     if (!this.caught) {
       this.x += this.speed;
@@ -777,7 +449,6 @@ class Fish {
       const index = hook.attachedFishes.indexOf(this);
       const targetX = hook.x - this.size / 2 + index * 35;
       const targetY = hook.worldY - 50 - index * 40;
-      
       this.x += (targetX - this.x) * 0.2;
       this.worldY += (targetY - this.worldY) * 0.2;
     }
@@ -785,43 +456,15 @@ class Fish {
   }
 }
 
-// Initialize images based on current level
-function loadLevelAssets() {
-  const config = levelConfigs[currentLevel];
-  
-  // Clear existing images
-  fishImages.length = 0;
-  obstacleImages.length = 0;
-  
-  // Load fish images for current level
-  config.fishTypes.forEach(fishName => {
-    const img = new Image();
-    img.src = `assets/${fishName}`;
-    fishImages.push(img);
-  });
-  
-  // Load obstacle images
-  const obstacleTypes = ['seahorse.png', 'jellyfish.png', 'starfish.png', 'shell.png'];
-  obstacleTypes.forEach(obstName => {
-    const img = new Image();
-    img.src = `assets/${obstName}`;
-    obstacleImages.push(img);
-  });
-  
-  // Update hook image based on selection
-  hookImg.src = `assets/${selectedHook}.png`;
-  
-  // Update boat image based on selection
-  boatElement.src = `assets/${selectedBoat}.png`;
-}
+// ... (the rest of your game code below remains the same)
+// --- (The rest of your code remains unchanged) ---
 
-// Spawn fish based on current level
-function spawnFish() {
+// ======================= FISH & OBSTACLE SPAWNING =======================
+
+function spawnFishWithPreloader() {
   fishes = [];
   const config = levelConfigs[currentLevel];
   worldHeight = config.worldHeight;
-  
-  // Define depth zones based on level
   let depthZones;
   if (currentLevel === 1) {
     depthZones = [
@@ -835,20 +478,19 @@ function spawnFish() {
       { minDepth: 1000, maxDepth: 1500, fishCount: 10, fishValue: 3 },
       { minDepth: 1500, maxDepth: 2200, fishCount: 12, fishValue: 4 }
     ];
-  } else { // Level 3
+  } else {
     depthZones = [
       { minDepth: 600, maxDepth: 1200, fishCount: 5, fishValue: 3 },
       { minDepth: 1200, maxDepth: 2000, fishCount: 8, fishValue: 5 },
       { minDepth: 2000, maxDepth: 2800, fishCount: 10, fishValue: 8 }
     ];
   }
-  
   depthZones.forEach(zone => {
     for (let i = 0; i < zone.fishCount; i++) {
-      const imgIndex = Math.floor(Math.random() * fishImages.length);
-      const img = fishImages[imgIndex];
+      const fishType = config.fishTypes[Math.floor(Math.random() * config.fishTypes.length)];
+      const imageKey = fishType.replace('.png', '');
+      const preloadedImage = imagePreloader.getImage(imageKey);
       let x, speed, direction;
-      
       if (Math.random() > 0.5) {
         x = Math.random() * 100;
         speed = Math.random() * 2 + 1;
@@ -858,19 +500,21 @@ function spawnFish() {
         speed = -(Math.random() * 2 + 1);
         direction = 'left';
       }
-      
       const worldY = zone.minDepth + Math.random() * (zone.maxDepth - zone.minDepth);
-      fishes.push(new Fish(x, worldY, speed, img, direction, zone.minDepth, zone.fishValue));
+      if (preloadedImage) {
+        fishes.push(new Fish(x, worldY, speed, preloadedImage, direction, zone.minDepth, zone.fishValue));
+      } else {
+        const img = new Image();
+        img.src = `assets/${fishType}`;
+        fishes.push(new Fish(x, worldY, speed, img, direction, zone.minDepth, zone.fishValue));
+      }
     }
   });
 }
 
-// Spawn obstacles based on current level
 function spawnObstacles() {
   obstacles.length = 0;
   const config = levelConfigs[currentLevel];
-  
-  // Spawn obstacles throughout the water depth
   for (let depth = 500; depth < worldHeight - 500; depth += 200) {
     const count = Math.floor(config.obstacleCount / 4) + Math.floor(Math.random() * 2);
     for (let i = 0; i < count; i++) {
@@ -889,7 +533,8 @@ function spawnObstacles() {
   }
 }
 
-// Draw obstacles
+// ======================= GAME LOOP & LOGIC =======================
+
 function drawObstacles() {
   obstacles.forEach(obstacle => {
     const screenY = obstacle.worldY - cameraY;
@@ -899,25 +544,20 @@ function drawObstacles() {
   });
 }
 
-// Check obstacle collisions
 function checkObstacleCollisions() {
   if (hook.attachedFishes.length === 0) return;
-
   for (const obstacle of obstacles) {
     const dx = hook.x - (obstacle.x + obstacle.size/2);
     const dy = hook.worldY - obstacle.worldY;
     const distance = Math.sqrt(dx * dx + dy * dy);
-    
     if (distance < hook.radius + obstacle.radius) {
       sounds.collision.currentTime = 0;
       sounds.collision.play();
-      
       hook.attachedFishes.forEach(fish => {
         fish.caught = false;
         fish.x += (Math.random() - 0.5) * 100;
         fish.worldY = obstacle.worldY + obstacle.radius + fish.size/2 + Math.random() * 50;
       });
-      
       hook.attachedFishes = [];
       hook.fishBeingDelivered = false;
       break;
@@ -925,17 +565,21 @@ function checkObstacleCollisions() {
   }
 }
 
-// Check fish catches
 function checkCatch() {
   fishes.forEach(fish => {
     if (!fish.caught && hook.attachedFishes.length < hook.maxFishes) {
       const dx = hook.x - (fish.x + fish.size / 2);
       const dy = hook.worldY - fish.worldY;
       const distance = Math.sqrt(dx * dx + dy * dy);
-      
       if (distance < fish.size / 2 + 10) {
         fish.caught = true;
         hook.attachedFishes.push(fish);
+        // update sidebar and panel
+        const fishType = fish.image.src.split('/').pop();
+        if (!caughtFishCounts[fishType]) caughtFishCounts[fishType] = 0;
+        caughtFishCounts[fishType]++;
+        updateFishPanel();
+        updateSidebarFishCount(fishType);
         sounds.catch.currentTime = 0;
         sounds.catch.play();
         sounds.splash.currentTime = 0;
@@ -944,90 +588,258 @@ function checkCatch() {
     }
   });
 }
-// Deep Sea Fishing Adventure - JavaScript Part 3: Rendering & Camera
-// Add this after Part 2
 
-// Draw animated waves
-function drawWaves() {
-  const waveY = defaultWaterSurfaceY - cameraY * 0.25;
-  waterSurfaceY = waveY;
-  
-  ctx.fillStyle = '#0a2e59';
-  ctx.beginPath();
-  ctx.moveTo(0, canvas.height);
-  ctx.lineTo(0, waveY);
-  
-  const time = Date.now() / 200;
-  for (let x = 0; x <= canvas.width; x += 10) {
-    const y = waveY + 
-              Math.sin((x * 0.02) + time * 0.1) * 15 + 
-              Math.sin((x * 0.01) + time * 0.2) * 8;
-    ctx.lineTo(x, y);
+// ======================= RENDER & CAMERA =======================
+
+const levelColorSchemes = {
+  1: {
+    skyColor: '#87ceeb',
+    waterSurface: '#4682b4',
+    waterDeep: '#191970',
+    waterBase: '#0077be',
+    gradientStops: [
+      { stop: 0, color: 'rgba(0, 119, 190, 1)' },
+      { stop: 0.4, color: 'rgba(0, 80, 150, 1)' },
+      { stop: 1, color: 'rgba(0, 40, 100, 1)' }
+    ]
+  },
+  2: {
+    skyColor: '#6495ed',
+    waterSurface: '#4169e1',
+    waterDeep: '#0000cd',
+    waterBase: '#0066cc',
+    gradientStops: [
+      { stop: 0, color: 'rgba(0, 102, 204, 1)' },
+      { stop: 0.4, color: 'rgba(0, 60, 180, 1)' },
+      { stop: 1, color: 'rgba(0, 20, 120, 1)' }
+    ]
+  },
+  3: {
+    skyColor: '#483d8b',
+    waterSurface: '#2e2b5f',
+    waterDeep: '#1a1a2e',
+    waterBase: '#2d1b69',
+    gradientStops: [
+      { stop: 0, color: 'rgba(45, 27, 105, 1)' },
+      { stop: 0.4, color: 'rgba(30, 20, 80, 1)' },
+      { stop: 1, color: 'rgba(15, 10, 50, 1)' }
+    ]
   }
-  
-  ctx.lineTo(canvas.width, canvas.height);
-  ctx.closePath();
-  ctx.fill();
-  
-  // Wave highlights
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  for (let x = 0; x <= canvas.width; x += 10) {
-    const y = waveY + 
-              Math.sin((x * 0.02) + time * 0.1) * 15 + 
-              Math.sin((x * 0.01) + time * 0.2) * 8;
-    if (x === 0) {
-      ctx.moveTo(x, y);
-    } else {
-      ctx.lineTo(x, y);
+};
+function getCurrentLevelColors() {
+  return levelColorSchemes[currentLevel] || levelColorSchemes[1];
+}
+// Cleaned up drawBackground (level-based)
+function drawBackground() {
+  const dynamicWaterSurfaceY = waterSurfaceY;
+  const colors = getCurrentLevelColors();
+  ctx.fillStyle = colors.skyColor;
+  ctx.fillRect(0, 0, canvas.width, dynamicWaterSurfaceY);
+  ctx.fillStyle = colors.waterBase;
+  ctx.fillRect(0, dynamicWaterSurfaceY, canvas.width, canvas.height - dynamicWaterSurfaceY);
+  const depthRatio = Math.min(1, cameraY / (worldHeight * 0.7));
+  const gradient = ctx.createLinearGradient(0, dynamicWaterSurfaceY, 0, canvas.height);
+  const levelGradient = colors.gradientStops;
+  levelGradient.forEach(stop => {
+    const rgba = stop.color.replace('rgba(', '').replace(')', '').split(',');
+    const r = Math.max(0, parseInt(rgba[0]) - depthRatio * 30);
+    const g = Math.max(0, parseInt(rgba[1]) - depthRatio * 40);
+    const b = Math.max(0, parseInt(rgba[2]) - depthRatio * 60);
+    gradient.addColorStop(stop.stop, `rgba(${r}, ${g}, ${b}, 1)`);
+  });
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, dynamicWaterSurfaceY, canvas.width, canvas.height - dynamicWaterSurfaceY);
+  if (depthRatio > 0.1 && currentLevel > 1) {
+    const particleCount = Math.floor(20 * depthRatio * currentLevel);
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+    for (let i = 0; i < particleCount; i++) {
+      const size = 1 + Math.random() * (currentLevel);
+      const x = Math.random() * canvas.width;
+      const y = dynamicWaterSurfaceY + Math.random() * (canvas.height - dynamicWaterSurfaceY);
+      ctx.beginPath();
+      ctx.arc(x, y, size, 0, Math.PI * 2);
+      ctx.fill();
     }
   }
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+  ctx.font = '16px Arial';
+  const depthInterval = currentLevel === 1 ? 300 : currentLevel === 2 ? 400 : 500;
+  for (let depth = depthInterval; depth < worldHeight; depth += depthInterval) {
+    const y = depth - cameraY;
+    if (y > dynamicWaterSurfaceY && y < canvas.height) {
+      ctx.fillText(`${Math.floor(depth/100)}m`, canvas.width - 70, y);
+      ctx.beginPath();
+      ctx.setLineDash([5, 10]);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+  const seaFloorY = worldHeight - cameraY;
+  if (seaFloorY < canvas.height + 50) {
+    ctx.fillStyle = currentLevel === 3 ? '#2d1810' : currentLevel === 2 ? '#654321' : '#8b4513';
+    ctx.fillRect(0, seaFloorY - 30, canvas.width, 80);
+    ctx.fillStyle = currentLevel === 3 ? '#1a0f08' : currentLevel === 2 ? '#4a3218' : '#654321';
+    for (let x = 0; x < canvas.width; x += 120) {
+      const rockHeight = 20 + Math.random() * 25;
+      ctx.beginPath();
+      ctx.ellipse(
+        x + Math.random() * 100,
+        seaFloorY - rockHeight/2,
+        30 + Math.random() * 20,
+        rockHeight/2,
+        0, 0, Math.PI * 2
+      );
+      ctx.fill();
+    }
+  }
+}
+function drawWaves() {
+  // The Y coordinate of the water surface in world coordinates
+  const waveWorldY = defaultWaterSurfaceY;
+  // Convert to screen (canvas) coordinates
+  const waveScreenY = waveWorldY - cameraY;
+
+  // Choose color scheme for the level
+  const colors = getCurrentLevelColors();
+  ctx.save();
+  // Draw water as a big rectangle below the wave
+  ctx.fillStyle = colors.waterBase || "#0077be";
+  ctx.fillRect(0, waveScreenY, canvas.width, canvas.height - waveScreenY);
+
+  // Draw animated wave line
+  ctx.beginPath();
+  ctx.moveTo(0, waveScreenY);
+  const time = Date.now() * 0.001;
+  for (let x = 0; x <= canvas.width; x += 2) {
+    // Multi-frequency sine for wavy surface
+    let y = waveScreenY
+      + Math.sin((x * 0.015) + time * 2) * 10
+      + Math.cos((x * 0.007) + time * 1.3) * 6;
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(canvas.width, waveScreenY + 30);
+  ctx.lineTo(0, waveScreenY + 30);
+  ctx.closePath();
+  ctx.fillStyle = colors.waterSurface || "#4682b4";
+  ctx.globalAlpha = 0.8;
+  ctx.fill();
+  ctx.globalAlpha = 1.0;
+
+  // Draw white highlight line
+  ctx.beginPath();
+  for (let x = 0; x <= canvas.width; x += 3) {
+    let y = waveScreenY
+      + Math.sin((x * 0.015) + time * 2) * 10
+      + Math.cos((x * 0.007) + time * 1.3) * 6;
+    ctx.lineTo(x, y - 2);
+  }
+  ctx.strokeStyle = "rgba(255,255,255,0.35)";
+  ctx.lineWidth = 2.5;
   ctx.stroke();
+
+  ctx.restore();
+}
+function updateBoatElement() {
+  if (boatElement) {
+    // Boat always floats at water surface in world coordinates!
+    // Boat's Y on screen: water surface Y in world - cameraY - boat height
+    const waveScreenY = defaultWaterSurfaceY - cameraY;
+    boatElement.style.left = (boat.x - boat.width/2) + 'px';
+    boatElement.style.top = (waveScreenY - boat.height) + 'px';
+    boatElement.style.display = gameActive ? 'block' : 'none';
+    boatElement.style.zIndex = '10';
+    // Optional: set size by JS (CSS width can be removed for true sync)
+    boatElement.style.width = boat.width + 'px';
+    boatElement.style.height = boat.height + 'px';
+  }
+}
+function update() {
+  if (!gameActive || gameOver) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  updateCamera();
+
+  // 1. Draw backgrounds (sky, etc)
+  drawBackground();
+
+  // 2. Draw water surface/waves at correct scrolling Y
+  drawWaves();
+
+  // 3. Update boat position and DOM
+  updateBoatPosition();
+  updateBoatElement();
+
+  // 4. Draw obstacles, hook, fish, etc.
+  drawObstacles();
+  handleHookMovement();
+  drawHook();
+  fishes.forEach(fish => fish.update());
+  checkCatch();
+  checkObstacleCollisions();
+
+  // etc...
+  requestAnimationFrame(update);
 }
 
-// Update boat position function
+// ...the rest of your script remains unchanged (menus, controls, etc)...
+// Camera update
+function updateCamera() {
+  const isInDeepWater = hook.worldY > defaultWaterSurfaceY;
+  if (!isInDeepWater) {
+    targetCameraY = 0;
+  } else {
+    const hookScreenY = hook.worldY - cameraY;
+    const viewportCenter = canvas.height * 0.5;
+    if (Math.abs(hookScreenY - viewportCenter) > 100) {
+      if (hook.isMovingDown) {
+        targetCameraY = hook.worldY - viewportCenter * 0.7;
+      } else if (hook.isMovingUp) {
+        targetCameraY = hook.worldY - viewportCenter * 1.2;
+      } else {
+        targetCameraY = hook.worldY - viewportCenter;
+      }
+    }
+    targetCameraY = Math.max(0, targetCameraY);
+    targetCameraY = Math.min(worldHeight - canvas.height, targetCameraY);
+  }
+  const smoothingUp = 0.08;
+  const smoothingDown = 0.05;
+  const cameraDelta = targetCameraY - cameraY;
+  const currentSmoothing = cameraDelta < 0 ? smoothingUp : smoothingDown;
+  cameraY += cameraDelta * currentSmoothing;
+}
+
+// Update boat position
 function updateBoatPosition() {
   const hookDepthBelowBoat = Math.max(0, hook.worldY - boat.defaultWorldY);
-  
   let targetBoatWorldY = boat.defaultWorldY;
-  
   if (hookDepthBelowBoat > 0) {
     const boatDepthMovement = Math.min(boat.maxDepth, hookDepthBelowBoat * 0.25);
     targetBoatWorldY = boat.defaultWorldY + boatDepthMovement;
   }
-  
   boat.worldY += (targetBoatWorldY - boat.worldY) * 0.04;
   boat.y = boat.worldY - cameraY;
-  
-  // Move boat vertically up by increasing the offset
-  boatElement.style.top = (boat.y - 350) + 'px'; // Changed from -300 to -450
-  
+  boatElement.style.top = (boat.y - 350) + 'px';
   const rect = boatElement.getBoundingClientRect();
   boat.x = rect.left + rect.width / 2;
-  
-  // Deliver fish when hook reaches boat
   if (hook.worldY <= boat.worldY + 15 && hook.attachedFishes.length > 0) {
     let totalValue = 0;
     hook.attachedFishes.forEach(fish => {
       totalValue += fish.value * levelConfigs[currentLevel].scoreMultiplier;
     });
-    
     score += Math.floor(totalValue);
     document.getElementById('score').textContent = score;
-    
     sounds.coin.currentTime = 0;
     sounds.coin.play();
-    
     hook.attachedFishes.forEach(f => {
       fishes = fishes.filter(ff => ff !== f);
     });
-    
     hook.attachedFishes = [];
     hook.fishBeingDelivered = false;
   }
-  
-  // Reset hook position at boat
   if (hook.worldY <= boat.worldY) {
     hook.x = boat.x - 270;
     hook.y = boat.y + 20;
@@ -1039,190 +851,44 @@ function updateBoatPosition() {
     hook.fishBeingDelivered = false;
   }
 }
-// Draw fishing hook and line
+// Draw hook and line
 function drawHook() {
-    hook.y = hook.worldY - cameraY;
-    
-    // Calculate boat's current position on screen
-    const boatScreenX = boat.x;
-    const boatScreenY = boat.y;
-    const lineStartX = boatScreenX; // Line starts from boat's center
-    const lineStartY = boatScreenY + 15; // Slightly below boat
-    
-    // Draw fishing line
-    ctx.beginPath();
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
-    ctx.lineWidth = 2;
-    ctx.moveTo(lineStartX, lineStartY);
-    
-    const lineLength = hook.y - lineStartY;
-    const controlX = lineStartX + (hook.x - lineStartX) * 0.5 + Math.sin(Date.now() / 2000) * 20;
-    const controlY = lineStartY + lineLength * 0.5;
-    
-    if (lineLength > 100) {
-        ctx.quadraticCurveTo(controlX, controlY, hook.x, hook.y);
-    } else {
-        ctx.lineTo(hook.x, hook.y);
-    }
-    ctx.stroke();
-    
-    // Draw hook
-    ctx.drawImage(hookImg, hook.x - 15, hook.y, 30, 50);
-}
-
-// Camera system
-function updateCamera() {
-  const isInDeepWater = hook.worldY > defaultWaterSurfaceY;
-  
-  if (!isInDeepWater) {
-    targetCameraY = 0;
+  hook.y = hook.worldY - cameraY;
+  const boatScreenX = boat.x;
+  const boatScreenY = boat.y;
+  const lineStartX = boatScreenX;
+  const lineStartY = boatScreenY + 15;
+  ctx.beginPath();
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+  ctx.lineWidth = 2;
+  ctx.moveTo(lineStartX, lineStartY);
+  const lineLength = hook.y - lineStartY;
+  const controlX = lineStartX + (hook.x - lineStartX) * 0.5 + Math.sin(Date.now() / 2000) * 20;
+  const controlY = lineStartY + lineLength * 0.5;
+  if (lineLength > 100) {
+    ctx.quadraticCurveTo(controlX, controlY, hook.x, hook.y);
   } else {
-    const hookScreenY = hook.worldY - cameraY;
-    const viewportCenter = canvas.height * 0.5;
-    
-    if (Math.abs(hookScreenY - viewportCenter) > 100) {
-      if (hook.isMovingDown) {
-        targetCameraY = hook.worldY - viewportCenter * 0.7;
-      } else if (hook.isMovingUp) {
-        targetCameraY = hook.worldY - viewportCenter * 1.2;
-      } else {
-        targetCameraY = hook.worldY - viewportCenter;
-      }
-    }
-    
-    targetCameraY = Math.max(0, targetCameraY);
-    targetCameraY = Math.min(worldHeight - canvas.height, targetCameraY);
+    ctx.lineTo(hook.x, hook.y);
   }
-  
-  const smoothingUp = 0.08;
-  const smoothingDown = 0.05;
-  
-  const cameraDelta = targetCameraY - cameraY;
-  const currentSmoothing = cameraDelta < 0 ? smoothingUp : smoothingDown;
-  
-  cameraY += cameraDelta * currentSmoothing;
+  ctx.stroke();
+  ctx.drawImage(hookImg, hook.x - 15, hook.y, 30, 50);
 }
 
-// Draw background with depth effects
-function drawBackground() {
-  const dynamicWaterSurfaceY = waterSurfaceY;
-  
-  // Sky
-  ctx.fillStyle = '#87ceeb';
-  ctx.fillRect(0, 0, canvas.width, dynamicWaterSurfaceY);
-  
-  // Water base
-  ctx.fillStyle = '#0077be';
-  ctx.fillRect(0, dynamicWaterSurfaceY, canvas.width, canvas.height - dynamicWaterSurfaceY);
-  
-  // Depth gradient based on level
-  const depthRatio = Math.min(1, cameraY / (worldHeight * 0.7));
-  
-  const gradient = ctx.createLinearGradient(0, dynamicWaterSurfaceY, 0, canvas.height);
-  
-  // Different colors for each level
-  if (currentLevel === 1) {
-    gradient.addColorStop(0, 'rgba(0, 119, 190, 1)');
-    gradient.addColorStop(0.4, `rgba(0, ${80 - depthRatio * 30}, ${150 - depthRatio * 50}, 1)`);
-    gradient.addColorStop(1, `rgba(0, ${40 - depthRatio * 20}, ${100 - depthRatio * 40}, 1)`);
-  } else if (currentLevel === 2) {
-    gradient.addColorStop(0, 'rgba(0, 100, 160, 1)');
-    gradient.addColorStop(0.4, `rgba(0, ${60 - depthRatio * 40}, ${120 - depthRatio * 60}, 1)`);
-    gradient.addColorStop(1, `rgba(0, ${20 - depthRatio * 15}, ${60 - depthRatio * 40}, 1)`);
-  } else {
-    gradient.addColorStop(0, 'rgba(0, 80, 130, 1)');
-    gradient.addColorStop(0.4, `rgba(0, ${40 - depthRatio * 30}, ${90 - depthRatio * 70}, 1)`);
-    gradient.addColorStop(1, `rgba(0, ${10 - depthRatio * 8}, ${30 - depthRatio * 25}, 1)`);
-  }
-  
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, dynamicWaterSurfaceY, canvas.width, canvas.height - dynamicWaterSurfaceY);
-  
-  // Ambient particles for deeper levels
-  if (depthRatio > 0.1 && currentLevel > 1) {
-    const particleCount = Math.floor(20 * depthRatio * currentLevel);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-    
-    for (let i = 0; i < particleCount; i++) {
-      const size = 1 + Math.random() * (currentLevel);
-      const x = Math.random() * canvas.width;
-      const y = dynamicWaterSurfaceY + Math.random() * (canvas.height - dynamicWaterSurfaceY);
-      
-      ctx.beginPath();
-      ctx.arc(x, y, size, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-  
-  // Depth markers
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-  ctx.font = '16px Arial';
-  
-  const depthInterval = currentLevel === 1 ? 300 : currentLevel === 2 ? 400 : 500;
-  for (let depth = depthInterval; depth < worldHeight; depth += depthInterval) {
-    const y = depth - cameraY;
-    if (y > dynamicWaterSurfaceY && y < canvas.height) {
-      ctx.fillText(`${Math.floor(depth/100)}m`, canvas.width - 70, y);
-      
-      ctx.beginPath();
-      ctx.setLineDash([5, 10]);
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-      ctx.moveTo(0, y);
-      ctx.lineTo(canvas.width, y);
-      ctx.stroke();
-      ctx.setLineDash([]);
-    }
-  }
-  
-  // Sea floor
-  const seaFloorY = worldHeight - cameraY;
-  if (seaFloorY < canvas.height + 50) {
-    ctx.fillStyle = currentLevel === 3 ? '#2d1810' : '#8b4513';
-    ctx.fillRect(0, seaFloorY - 30, canvas.width, 80);
-    
-    // Floor details
-    ctx.fillStyle = currentLevel === 3 ? '#1a0f08' : '#654321';
-    for (let x = 0; x < canvas.width; x += 120) {
-      const rockHeight = 20 + Math.random() * 25;
-      ctx.beginPath();
-      ctx.ellipse(
-        x + Math.random() * 100, 
-        seaFloorY - rockHeight/2, 
-        30 + Math.random() * 20, 
-        rockHeight/2,  
-        0, 0, Math.PI * 2
-      );
-      ctx.fill();
-    }
-  }
-}
-// Deep Sea Fishing Adventure - JavaScript Part 4: Controls & Game Loop
-// Add this after Part 3
+// ======================= GAME CONTROLS =======================
 
-// Handle hook movement with WASD keys
 function handleHookMovement() {
   const boatWorldY = boat.worldY;
-  
-  if (hook.worldY > boatWorldY) {
-    hook.isAtBoat = false;
-  }
-  
-  // Horizontal movement (A/D keys)
+  if (hook.worldY > boatWorldY) hook.isAtBoat = false;
+  // Horizontal
   if (keys.a && hook.worldY > boatWorldY) {
     hook.x -= hook.horizontalSpeed;
-    if (hook.x < 20) {
-      hook.x = 20;
-    }
+    if (hook.x < 20) hook.x = 20;
   }
-  
   if (keys.d && hook.worldY > boatWorldY) {
     hook.x += hook.horizontalSpeed;
-    if (hook.x > canvas.width - 20) {
-      hook.x = canvas.width - 20;
-    }
+    if (hook.x > canvas.width - 20) hook.x = canvas.width - 20;
   }
-  
-  // Move down (S key)
+  // Move down
   if (keys.s && !hook.isMovingUp && hook.worldY < worldHeight - 50 && 
       hook.attachedFishes.length < hook.maxFishes) {
     hook.worldY += hook.stepDistance;
@@ -1231,15 +897,11 @@ function handleHookMovement() {
       sounds.cast.play();
       hook.isMovingDown = true;
     }
-    
-    if (hook.worldY > worldHeight - 50) {
-      hook.worldY = worldHeight - 50;
-    }
+    if (hook.worldY > worldHeight - 50) hook.worldY = worldHeight - 50;
   } else {
     hook.isMovingDown = false;
   }
-  
-  // Move up (W key)
+  // Move up
   if (keys.w && !hook.isMovingDown && hook.worldY > boatWorldY) {
     hook.worldY -= hook.stepDistance;
     if (!hook.isMovingUp) {
@@ -1247,7 +909,6 @@ function handleHookMovement() {
       sounds.reel.play();
       hook.isMovingUp = true;
     }
-    
     if (hook.worldY <= boatWorldY) {
       hook.worldY = boatWorldY;
       hook.isMovingUp = false;
@@ -1255,7 +916,6 @@ function handleHookMovement() {
   } else {
     hook.isMovingUp = false;
   }
-  
   // Auto-reel when max fish caught
   if (hook.attachedFishes.length >= hook.maxFishes && !hook.isMovingUp) {
     hook.isMovingUp = true;
@@ -1264,12 +924,11 @@ function handleHookMovement() {
   }
 }
 
-// Main game update loop
+// ======================= GAME LOOP =======================
+
 function update() {
   if (!gameActive || gameOver) return;
-  
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
   updateCamera();
   drawBackground();
   drawWaves();
@@ -1277,18 +936,10 @@ function update() {
   drawObstacles();
   handleHookMovement();
   drawHook();
-  
-  // Update all fish
   fishes.forEach(fish => fish.update());
-  
   checkCatch();
   checkObstacleCollisions();
-  
-  // Check win condition (all fish caught)
-  if (fishes.length === 0) {
-    endGame(true);
-  }
-
+  if (fishes.length === 0) endGame(true);
   requestAnimationFrame(update);
 }
 
@@ -1309,33 +960,9 @@ function startTimer() {
   }, 1000);
 }
 
-// End game function
-function endGame(levelComplete = false) {
-  gameActive = false;
-  gameOver = true;
-  
-  // Hide side panels when game ends
-  document.getElementById('leftPanel').style.display = 'none';
-  document.getElementById('rightPanel').style.display = 'none';
-  
-  document.getElementById('finalScore').textContent = `Your Score: ${score}`;
-  document.getElementById('levelCompleted').textContent = 
-    levelComplete ? `Level ${currentLevel} Completed!` : `Time's Up!`;
-  
-  // Show appropriate buttons
-  const nextButton = document.getElementById('nextLevelButton');
-  if (levelComplete && currentLevel < 3) {
-    nextButton.style.display = 'inline-block';
-  } else {
-    nextButton.style.display = 'none';
-  }
-  
-  endScreen.style.display = 'flex';
-}
+// ======================= GAME STATE MANAGEMENT =======================
 
-// Start game function
 function startGame() {
-  // Reset game state
   score = 0;
   timeLeft = levelConfigs[currentLevel].timeLimit;
   gameActive = true;
@@ -1343,56 +970,179 @@ function startGame() {
   cameraY = 0;
   targetCameraY = 0;
   waterSurfaceY = defaultWaterSurfaceY;
-  
-  // Reset caught fish counts
   caughtFishCounts = {};
-  
-  // Initialize fish panel
   updateFishPanel();
-  
-  // Show side panels when game starts
+  showGameSidebars();
+  resetSidebarCounts();
   document.getElementById('leftPanel').style.display = 'block';
   document.getElementById('rightPanel').style.display = 'block';
-  
-  // Reset boat position
   boat.worldY = boat.defaultWorldY;
   boatElement.style.top = (boat.y - 300) + 'px';
-  
-  // Update UI
   document.getElementById('score').textContent = score;
   document.getElementById('time').textContent = timeLeft;
   document.getElementById('current-level').textContent = currentLevel;
-  
-  // Update level multiplier in right panel
   document.getElementById('multiplier').textContent = currentLevel;
-  
-  // Reset fish collection counts in right panel
-  const fishItems = document.querySelectorAll('.fish-count');
-  fishItems.forEach(item => {
-    item.textContent = '0';
-  });
-  
-  // Reset hook state
+  document.querySelectorAll('.fish-count').forEach(item => item.textContent = '0');
   hook.isMovingDown = false;
   hook.isMovingUp = false;
   hook.attachedFishes = [];
   hook.worldY = boat.worldY;
   hook.isAtBoat = true;
   hook.fishBeingDelivered = false;
-  
-  // Load level assets and spawn entities
-  loadLevelAssets();
-  
-  // Wait a bit for images to load
-  setTimeout(() => {
-    spawnFishWithPreloader(); // Instead of spawnFish()
-    spawnObstacles();
-    update();
-    startTimer();
-  }, 100);
+  loadLevelAssetsWithPreloader().then(() => {
+    setTimeout(() => {
+      spawnFishWithPreloader();
+      spawnObstacles();
+      update();
+      startTimer();
+    }, 100);
+  });
+}
+function endGame(levelComplete = false) {
+  gameActive = false;
+  gameOver = true;
+  hideGameSidebars();
+  document.getElementById('leftPanel').style.display = 'none';
+  document.getElementById('rightPanel').style.display = 'none';
+  document.getElementById('finalScore').textContent = `Your Score: ${score}`;
+  document.getElementById('levelCompleted').textContent = 
+    levelComplete ? `Level ${currentLevel} Completed!` : `Time's Up!`;
+  const nextButton = document.getElementById('nextLevelButton');
+  if (levelComplete && currentLevel < 3) {
+    nextButton.style.display = 'inline-block';
+  } else {
+    nextButton.style.display = 'none';
+  }
+  endScreen.style.display = 'flex';
 }
 
-// End screen button handlers
+// ======================= SIDEBAR FUNCTIONS =======================
+
+function showGameSidebars() {
+  const leftSidebar = document.getElementById('left-sidebar');
+  const rightSidebar = document.getElementById('right-sidebar');
+  if (leftSidebar) leftSidebar.style.display = 'block';
+  if (rightSidebar) rightSidebar.style.display = 'block';
+}
+function hideGameSidebars() {
+  const leftSidebar = document.getElementById('left-sidebar');
+  const rightSidebar = document.getElementById('right-sidebar');
+  if (leftSidebar) leftSidebar.style.display = 'none';
+  if (rightSidebar) rightSidebar.style.display = 'none';
+}
+function updateSidebarFishCount(fishType) {
+  const fishItem = document.querySelector(`#right-sidebar [data-fish-type="${fishType}"]`);
+  if (fishItem) {
+    const countElement = fishItem.querySelector('.fish-count');
+    if (countElement) {
+      let currentCount = parseInt(countElement.textContent) || 0;
+      countElement.textContent = currentCount + 1;
+      fishItem.style.backgroundColor = 'rgba(0, 255, 136, 0.2)';
+      setTimeout(() => {
+        fishItem.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+      }, 300);
+      updateSidebarTotal();
+    }
+  }
+}
+function updateSidebarTotal() {
+  let total = 0;
+  const fishItems = document.querySelectorAll('#right-sidebar .fish-item');
+  fishItems.forEach(fishItem => {
+    const countElement = fishItem.querySelector('.fish-count');
+    const scoreElement = fishItem.querySelector('.fish-score');
+    if (countElement && scoreElement) {
+      const count = parseInt(countElement.textContent) || 0;
+      const scoreText = scoreElement.textContent;
+      const pointsMatch = scoreText.match(/(\d+)pts/);
+      if (pointsMatch) {
+        const points = parseInt(pointsMatch[1]);
+        total += count * points;
+      }
+    }
+  });
+  const totalElement = document.getElementById('sidebar-total');
+  if (totalElement) totalElement.textContent = total;
+}
+function resetSidebarCounts() {
+  const countElements = document.querySelectorAll('#right-sidebar .fish-count');
+  countElements.forEach(element => {
+    element.textContent = '0';
+  });
+  const totalElement = document.getElementById('sidebar-total');
+  if (totalElement) totalElement.textContent = '0';
+}
+
+function initializeSidebars() {
+  hideGameSidebars();
+  const fishItems = document.querySelectorAll('#right-sidebar .fish-item');
+  fishItems.forEach(item => {
+    item.addEventListener('mouseenter', function() {
+      this.style.transform = 'translateX(-3px)';
+    });
+    item.addEventListener('mouseleave', function() {
+      this.style.transform = 'translateX(0)';
+    });
+  });
+}
+document.addEventListener('DOMContentLoaded', function() {
+  initializeSidebars();
+});
+
+// ======================= MENUS AND EVENTS =======================
+
+// Menu event listeners
+playButton.addEventListener('click', () => {
+  mainMenu.style.display = 'none';
+  levelSelect.style.display = 'flex';
+});
+howToPlayButton.addEventListener('click', () => {
+  mainMenu.style.display = 'none';
+  howToPlayScreen.style.display = 'flex';
+});
+backToMainButton.addEventListener('click', () => {
+  levelSelect.style.display = 'none';
+  mainMenu.style.display = 'flex';
+});
+backFromHowToPlayButton.addEventListener('click', () => {
+  howToPlayScreen.style.display = 'none';
+  mainMenu.style.display = 'flex';
+});
+document.querySelectorAll('.level-card').forEach(card => {
+  card.addEventListener('click', () => {
+    currentLevel = parseInt(card.dataset.level);
+    document.getElementById('customizationTitle').textContent = 
+      `Level ${currentLevel}: Customization`;
+    levelSelect.style.display = 'none';
+    customizationScreen.style.display = 'flex';
+  });
+});
+document.querySelectorAll('[data-boat]').forEach(card => {
+  card.addEventListener('click', () => {
+    document.querySelectorAll('[data-boat]').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedBoat = card.dataset.boat;
+  });
+});
+document.querySelectorAll('[data-hook]').forEach(card => {
+  card.addEventListener('click', () => {
+    document.querySelectorAll('[data-hook]').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedHook = card.dataset.hook;
+  });
+});
+backToLevelsButton.addEventListener('click', () => {
+  customizationScreen.style.display = 'none';
+  levelSelect.style.display = 'flex';
+});
+if (startGameButton) {
+  const newStartGameButton = startGameButton.cloneNode(true);
+  startGameButton.parentNode.replaceChild(newStartGameButton, startGameButton);
+  newStartGameButton.addEventListener('click', () => {
+    customizationScreen.style.display = 'none';
+    startGame();
+  });
+}
 nextLevelButton.addEventListener('click', () => {
   if (currentLevel < 3) {
     currentLevel++;
@@ -1402,834 +1152,65 @@ nextLevelButton.addEventListener('click', () => {
     customizationScreen.style.display = 'flex';
   }
 });
-
 replayLevelButton.addEventListener('click', () => {
   endScreen.style.display = 'none';
   startGame();
 });
-
 backToLevelsFromEndButton.addEventListener('click', () => {
   endScreen.style.display = 'none';
   levelSelect.style.display = 'flex';
 });
 
-// Keyboard event listeners
+// ======================= KEYBOARD EVENTS =======================
+
 window.addEventListener('keydown', e => {
   if (!gameActive || gameOver) return;
-  
   switch(e.key.toLowerCase()) {
-    case 'w':
-      keys.w = true;
-      break;
-    case 'a':
-      keys.a = true;
-      break;
-    case 's':
-      keys.s = true;
-      break;
-    case 'd':
-      keys.d = true;
-      break;
+    case 'w': keys.w = true; break;
+    case 'a': keys.a = true; break;
+    case 's': keys.s = true; break;
+    case 'd': keys.d = true; break;
   }
 });
-
 window.addEventListener('keyup', e => {
   switch(e.key.toLowerCase()) {
-    case 'w':
-      keys.w = false;
-      break;
-    case 'a':
-      keys.a = false;
-      break;
-    case 's':
-      keys.s = false;
-      break;
-    case 'd':
-      keys.d = false;
-      break;
+    case 'w': keys.w = false; break;
+    case 'a': keys.a = false; break;
+    case 's': keys.s = false; break;
+    case 'd': keys.d = false; break;
   }
 });
 
-// Initialize the game
+// ======================= WINDOW RESIZE =======================
+
+window.addEventListener('resize', () => {
+  const oldHeight = canvas.height;
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  defaultWaterSurfaceY = canvas.height * 0.35;
+  waterSurfaceY = defaultWaterSurfaceY;
+  if (gameActive) {
+    boat.y = defaultWaterSurfaceY - 70;
+    boat.worldY = defaultWaterSurfaceY - 70;
+    boat.defaultWorldY = defaultWaterSurfaceY - 70;
+    if (hook.isAtBoat) {
+      hook.x = boat.x;
+      hook.y = boat.y + boat.height;
+      hook.worldY = boat.worldY + boat.height;
+      hook.originalY = boat.y + boat.height;
+    }
+    setTimeout(() => {
+      boatElement.style.left = (boat.x - boat.width/2) + 'px';
+      boatElement.style.top = (boat.y - 350) + 'px';
+    }, 50);
+  }
+});
+
+// ======================= INIT =======================
+
 document.addEventListener('DOMContentLoaded', () => {
-  // Show main menu on load
   mainMenu.style.display = 'flex';
-});
-// Level-based color management functions - CANVAS RENDERING VERSION
-// Add these functions to your existing JavaScript code
-
-// Level-specific color schemes for canvas rendering
-const levelColorSchemes = {
-    1: {
-        skyColor: '#87ceeb',
-        waterSurface: '#4682b4',
-        waterDeep: '#191970',
-        waterBase: '#0077be',
-        gradientStops: [
-            { stop: 0, color: 'rgba(0, 119, 190, 1)' },
-            { stop: 0.4, color: 'rgba(0, 80, 150, 1)' },
-            { stop: 1, color: 'rgba(0, 40, 100, 1)' }
-        ]
-    },
-    2: {
-        skyColor: '#6495ed',
-        waterSurface: '#4169e1',
-        waterDeep: '#0000cd',
-        waterBase: '#0066cc',
-        gradientStops: [
-            { stop: 0, color: 'rgba(0, 102, 204, 1)' },
-            { stop: 0.4, color: 'rgba(0, 60, 180, 1)' },
-            { stop: 1, color: 'rgba(0, 20, 120, 1)' }
-        ]
-    },
-    3: {
-        skyColor: '#483d8b',
-        waterSurface: '#2e2b5f',
-        waterDeep: '#1a1a2e',
-        waterBase: '#2d1b69',
-        gradientStops: [
-            { stop: 0, color: 'rgba(45, 27, 105, 1)' },
-            { stop: 0.4, color: 'rgba(30, 20, 80, 1)' },
-            { stop: 1, color: 'rgba(15, 10, 50, 1)' }
-        ]
-    }
-};
-
-// Function to get current level colors
-function getCurrentLevelColors() {
-    return levelColorSchemes[currentLevel] || levelColorSchemes[1];
-}
-
-// REPLACE your existing drawBackground() function with this version:
-function drawBackground() {
-    const dynamicWaterSurfaceY = waterSurfaceY;
-    const colors = getCurrentLevelColors();
-    
-    // Sky with level-specific color
-    ctx.fillStyle = colors.skyColor;
-    ctx.fillRect(0, 0, canvas.width, dynamicWaterSurfaceY);
-    
-    // Water base with level-specific color
-    ctx.fillStyle = colors.waterBase;
-    ctx.fillRect(0, dynamicWaterSurfaceY, canvas.width, canvas.height - dynamicWaterSurfaceY);
-    
-    // Depth gradient based on level
-    const depthRatio = Math.min(1, cameraY / (worldHeight * 0.7));
-    
-    const gradient = ctx.createLinearGradient(0, dynamicWaterSurfaceY, 0, canvas.height);
-    
-    // Use level-specific gradient colors
-    const levelGradient = colors.gradientStops;
-    levelGradient.forEach(stop => {
-        // Adjust color intensity based on depth
-        const rgba = stop.color.replace('rgba(', '').replace(')', '').split(',');
-        const r = Math.max(0, parseInt(rgba[0]) - depthRatio * 30);
-        const g = Math.max(0, parseInt(rgba[1]) - depthRatio * 40);
-        const b = Math.max(0, parseInt(rgba[2]) - depthRatio * 60);
-        gradient.addColorStop(stop.stop, `rgba(${r}, ${g}, ${b}, 1)`);
-    });
-    
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, dynamicWaterSurfaceY, canvas.width, canvas.height - dynamicWaterSurfaceY);
-    
-    // Ambient particles for deeper levels (unchanged)
-    if (depthRatio > 0.1 && currentLevel > 1) {
-        const particleCount = Math.floor(20 * depthRatio * currentLevel);
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-        
-        for (let i = 0; i < particleCount; i++) {
-            const size = 1 + Math.random() * (currentLevel);
-            const x = Math.random() * canvas.width;
-            const y = dynamicWaterSurfaceY + Math.random() * (canvas.height - dynamicWaterSurfaceY);
-            
-            ctx.beginPath();
-            ctx.arc(x, y, size, 0, Math.PI * 2);
-            ctx.fill();
-        }
-    }
-    
-    // Depth markers (unchanged)
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-    ctx.font = '16px Arial';
-    
-    const depthInterval = currentLevel === 1 ? 300 : currentLevel === 2 ? 400 : 500;
-    for (let depth = depthInterval; depth < worldHeight; depth += depthInterval) {
-        const y = depth - cameraY;
-        if (y > dynamicWaterSurfaceY && y < canvas.height) {
-            ctx.fillText(`${Math.floor(depth/100)}m`, canvas.width - 70, y);
-            
-            ctx.beginPath();
-            ctx.setLineDash([5, 10]);
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-            ctx.moveTo(0, y);
-            ctx.lineTo(canvas.width, y);
-            ctx.stroke();
-            ctx.setLineDash([]);
-        }
-    }
-    
-    // Sea floor with level-specific colors
-    const seaFloorY = worldHeight - cameraY;
-    if (seaFloorY < canvas.height + 50) {
-        ctx.fillStyle = currentLevel === 3 ? '#2d1810' : currentLevel === 2 ? '#654321' : '#8b4513';
-        ctx.fillRect(0, seaFloorY - 30, canvas.width, 80);
-        
-        // Floor details
-        ctx.fillStyle = currentLevel === 3 ? '#1a0f08' : currentLevel === 2 ? '#4a3218' : '#654321';
-        for (let x = 0; x < canvas.width; x += 120) {
-            const rockHeight = 20 + Math.random() * 25;
-            ctx.beginPath();
-            ctx.ellipse(
-                x + Math.random() * 100, 
-                seaFloorY - rockHeight/2, 
-                30 + Math.random() * 20, 
-                rockHeight/2, 
-                0, 0, Math.PI * 2
-            );
-            ctx.fill();
-        }
-    }
-}
-
-// REPLACE your existing drawWaves() function with this version:
-function drawWaves() {
-    const waveY = defaultWaterSurfaceY - cameraY * 0.25;
-    waterSurfaceY = waveY;
-    const colors = getCurrentLevelColors();
-    
-    // Use level-specific water color
-    ctx.fillStyle = colors.waterSurface;
-    ctx.beginPath();
-    ctx.moveTo(0, canvas.height);
-    ctx.lineTo(0, waveY);
-    
-    const time = Date.now() / 200;
-    for (let x = 0; x <= canvas.width; x += 10) {
-        const y = waveY + 
-                  Math.sin((x * 0.02) + time * 0.1) * 15 + 
-                  Math.sin((x * 0.01) + time * 0.2) * 8;
-        ctx.lineTo(x, y);
-    }
-    
-    ctx.lineTo(canvas.width, canvas.height);
-    ctx.closePath();
-    ctx.fill();
-    
-    // Wave highlights
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    for (let x = 0; x <= canvas.width; x += 10) {
-        const y = waveY + 
-                  Math.sin((x * 0.02) + time * 0.1) * 15 + 
-                  Math.sin((x * 0.01) + time * 0.2) * 8;
-        if (x === 0) {
-            ctx.moveTo(x, y);
-        } else {
-            ctx.lineTo(x, y);
-        }
-    }
-    ctx.stroke();
-}
-
-// Simple function to apply CSS body colors for menus (optional)
-function applyMenuLevelColors(levelNumber) {
-    document.body.classList.remove('level-1', 'level-2', 'level-3');
-    document.body.classList.add(`level-${levelNumber}`);
-}
-
-// Add this to your level selection event listeners:
-// (This is optional - only for menu background colors)
-/*
-document.querySelectorAll('.level-card').forEach(card => {
-    card.addEventListener('click', () => {
-        currentLevel = parseInt(card.dataset.level);
-        applyMenuLevelColors(currentLevel); // Optional: for menu background
-        
-        document.getElementById('customizationTitle').textContent = 
-            `Level ${currentLevel}: Customization`;
-        levelSelect.style.display = 'none';
-        customizationScreen.style.display = 'flex';
-    });
-});
-*/
-// Image Preloader Fix - Add this code to your existing JavaScript
-// This ensures all images are loaded before the game starts
-
-// Image preloader system
-class ImagePreloader {
-    constructor() {
-        this.loadedImages = new Map();
-        this.loadingPromises = new Map();
-        this.totalImages = 0;
-        this.loadedCount = 0;
-        this.onProgress = null;
-        this.onComplete = null;
-    }
-
-    // Load a single image and return a promise
-    loadImage(src, key = null) {
-        if (!key) key = src;
-        
-        // Return cached image if already loaded
-        if (this.loadedImages.has(key)) {
-            return Promise.resolve(this.loadedImages.get(key));
-        }
-
-        // Return existing promise if already loading
-        if (this.loadingPromises.has(key)) {
-            return this.loadingPromises.get(key);
-        }
-
-        const promise = new Promise((resolve, reject) => {
-            const img = new Image();
-            
-            img.onload = () => {
-                this.loadedImages.set(key, img);
-                this.loadedCount++;
-                
-                if (this.onProgress) {
-                    this.onProgress(this.loadedCount, this.totalImages);
-                }
-                
-                resolve(img);
-            };
-            
-            img.onerror = () => {
-                console.warn(`Failed to load image: ${src}`);
-                // Create a placeholder colored rectangle instead of failing
-                const canvas = document.createElement('canvas');
-                canvas.width = 100;
-                canvas.height = 100;
-                const ctx = canvas.getContext('2d');
-                ctx.fillStyle = '#ff0000';
-                ctx.fillRect(0, 0, 100, 100);
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '12px Arial';
-                ctx.fillText('Missing', 25, 50);
-                
-                const placeholderImg = new Image();
-                placeholderImg.src = canvas.toDataURL();
-                this.loadedImages.set(key, placeholderImg);
-                this.loadedCount++;
-                
-                if (this.onProgress) {
-                    this.onProgress(this.loadedCount, this.totalImages);
-                }
-                
-                resolve(placeholderImg);
-            };
-            
-            img.src = src;
-        });
-
-        this.loadingPromises.set(key, promise);
-        this.totalImages++;
-        return promise;
-    }
-
-    // Load multiple images
-    loadImages(imageList) {
-        const promises = imageList.map(item => {
-            if (typeof item === 'string') {
-                return this.loadImage(item);
-            } else {
-                return this.loadImage(item.src, item.key);
-            }
-        });
-
-        return Promise.all(promises);
-    }
-
-    // Get a loaded image
-    getImage(key) {
-        return this.loadedImages.get(key);
-    }
-
-    // Check if an image is loaded
-    isLoaded(key) {
-        return this.loadedImages.has(key);
-    }
-}
-
-// Create global image preloader instance
-const imagePreloader = new ImagePreloader();
-
-// Define all game images that need to be preloaded
-const gameImages = {
-    // Boats
-    boats: [
-        { src: 'assets/boat1.png', key: 'boat1' },
-        { src: 'assets/boat2.png', key: 'boat2' },
-        { src: 'assets/boat3.png', key: 'boat3' }
-    ],
-    // Hooks
-    hooks: [
-        { src: 'assets/hook1.png', key: 'hook1' },
-        { src: 'assets/hook2.png', key: 'hook2' },
-        { src: 'assets/hook3.png', key: 'hook3' }
-    ],
-    // Fish
-    fish: [
-        { src: 'assets/fish1.png', key: 'fish1' },
-        { src: 'assets/fish2.png', key: 'fish2' },
-        { src: 'assets/fish3.png', key: 'fish3' },
-        { src: 'assets/fish4.png', key: 'fish4' },
-        { src: 'assets/fish5.png', key: 'fish5' },
-        { src: 'assets/fish6.png', key: 'fish6' },
-        { src: 'assets/fish7.png', key: 'fish7' },
-        { src: 'assets/fish8.png', key: 'fish8' }
-    ],
-    // Obstacles
-    obstacles: [
-        { src: 'assets/seahorse.png', key: 'seahorse' },
-        { src: 'assets/jellyfish.png', key: 'jellyfish' },
-        { src: 'assets/starfish.png', key: 'starfish' },
-        { src: 'assets/shell.png', key: 'shell' }
-    ]
-};
-
-// Loading screen functions
-function showLoadingScreen() {
-    // Create loading overlay if it doesn't exist
-    let loadingOverlay = document.getElementById('loadingOverlay');
-    if (!loadingOverlay) {
-        loadingOverlay = document.createElement('div');
-        loadingOverlay.id = 'loadingOverlay';
-        loadingOverlay.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 50, 0.9);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            color: white;
-            font-family: Arial, sans-serif;
-        `;
-        
-        loadingOverlay.innerHTML = `
-            <div style="text-align: center;">
-                <h2 style="margin-bottom: 20px;">Loading Game Assets...</h2>
-                <div id="loadingBar" style="
-                    width: 300px;
-                    height: 20px;
-                    background: rgba(255,255,255,0.2);
-                    border-radius: 10px;
-                    overflow: hidden;
-                    margin-bottom: 10px;
-                ">
-                    <div id="loadingProgress" style="
-                        width: 0%;
-                        height: 100%;
-                        background: linear-gradient(90deg, #4CAF50, #2196F3);
-                        transition: width 0.3s ease;
-                        border-radius: 10px;
-                    "></div>
-                </div>
-                <div id="loadingText">0%</div>
-            </div>
-        `;
-        
-        document.body.appendChild(loadingOverlay);
-    }
-    
-    loadingOverlay.style.display = 'flex';
-}
-
-function updateLoadingProgress(loaded, total) {
-    const percentage = Math.round((loaded / total) * 100);
-    const progressBar = document.getElementById('loadingProgress');
-    const progressText = document.getElementById('loadingText');
-    
-    if (progressBar) {
-        progressBar.style.width = percentage + '%';
-    }
-    
-    if (progressText) {
-        progressText.textContent = `${percentage}% (${loaded}/${total})`;
-    }
-}
-
-function hideLoadingScreen() {
-    const loadingOverlay = document.getElementById('loadingOverlay');
-    if (loadingOverlay) {
-        loadingOverlay.style.display = 'none';
-    }
-}
-
-// Enhanced loadLevelAssets function replacement
-function loadLevelAssetsWithPreloader() {
-    return new Promise((resolve, reject) => {
-        const config = levelConfigs[currentLevel];
-        const imagesToLoad = [];
-        
-        // Add current level fish images
-        config.fishTypes.forEach(fishName => {
-            const key = fishName.replace('.png', '');
-            imagesToLoad.push({ src: `assets/${fishName}`, key: key });
-        });
-        
-        // Add obstacle images
-        gameImages.obstacles.forEach(obs => {
-            imagesToLoad.push(obs);
-        });
-        
-        // Add selected boat and hook
-        imagesToLoad.push({ src: `assets/${selectedBoat}.png`, key: selectedBoat });
-        imagesToLoad.push({ src: `assets/${selectedHook}.png`, key: selectedHook });
-        
-        // Reset preloader counters
-        imagePreloader.totalImages = 0;
-        imagePreloader.loadedCount = 0;
-        
-        // Load all images
-        imagePreloader.loadImages(imagesToLoad)
-            .then(() => {
-                // Update your existing image arrays with preloaded images
-                fishImages.length = 0;
-                obstacleImages.length = 0;
-                
-                config.fishTypes.forEach(fishName => {
-                    const key = fishName.replace('.png', '');
-                    const img = imagePreloader.getImage(key);
-                    if (img) fishImages.push(img);
-                });
-                
-                gameImages.obstacles.forEach(obs => {
-                    const img = imagePreloader.getImage(obs.key);
-                    if (img) obstacleImages.push(img);
-                });
-                
-                // Update hook and boat images
-                const hookImage = imagePreloader.getImage(selectedHook);
-                if (hookImage) {
-                    hookImg.src = hookImage.src;
-                    hookImg.onload = null; // Remove any existing onload handlers
-                }
-                
-                const boatImage = imagePreloader.getImage(selectedBoat);
-                if (boatImage && boatElement) {
-                    boatElement.src = boatImage.src;
-                    boatElement.onload = null; // Remove any existing onload handlers
-                }
-                
-                resolve();
-            })
-            .catch(reject);
-    });
-}
-
-// Preload all images at game startup
-function preloadAllGameImages() {
-    return new Promise((resolve, reject) => {
-        showLoadingScreen();
-        
-        // Set up progress callback
-        imagePreloader.onProgress = updateLoadingProgress;
-        
-        // Collect all images to preload
-        const allImages = [
-            ...gameImages.boats,
-            ...gameImages.hooks,
-            ...gameImages.fish,
-            ...gameImages.obstacles
-        ];
-        
-        // Reset counters
-        imagePreloader.totalImages = 0;
-        imagePreloader.loadedCount = 0;
-        
-        imagePreloader.loadImages(allImages)
-            .then(() => {
-                hideLoadingScreen();
-                resolve();
-            })
-            .catch(error => {
-                console.error('Failed to preload images:', error);
-                hideLoadingScreen();
-                resolve(); // Continue anyway with placeholders
-            });
-    });
-}
-
-// Enhanced startGame function wrapper
-function startGameWithPreloader() {
-    showLoadingScreen();
-    
-    // Set up progress tracking for level-specific loading
-    imagePreloader.onProgress = (loaded, total) => {
-        updateLoadingProgress(loaded, total);
-    };
-    
-    loadLevelAssetsWithPreloader()
-        .then(() => {
-            hideLoadingScreen();
-            
-            // Call your original startGame function
-            startGame();
-        })
-        .catch(error => {
-            console.error('Failed to load level assets:', error);
-            hideLoadingScreen();
-            alert('Some images failed to load. The game may not display correctly.');
-            startGame(); // Start anyway
-        });
-}
-
-// Replace the startGameButton event listener
-if (startGameButton) {
-    // Remove existing event listener and add new one
-    const newStartGameButton = startGameButton.cloneNode(true);
-    startGameButton.parentNode.replaceChild(newStartGameButton, startGameButton);
-    
-    newStartGameButton.addEventListener('click', () => {
-        customizationScreen.style.display = 'none';
-        startGameWithPreloader();
-    });
-}
-
-// Initialize preloader when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    // Preload all images at startup
-    preloadAllGameImages().then(() => {
-        console.log('All game images preloaded successfully!');
-    });
-});
-
-// Enhanced Fish class creation with preloaded images
-function createFishWithPreloadedImage(x, worldY, speed, imageSrc, direction, depth, value = 1) {
-    const imageKey = imageSrc.replace('assets/', '').replace('.png', '');
-    const preloadedImage = imagePreloader.getImage(imageKey);
-    
-    if (preloadedImage) {
-        return new Fish(x, worldY, speed, preloadedImage, direction, depth, value);
-    } else {
-        // Fallback: create image normally but it might not be loaded
-        const img = new Image();
-        img.src = imageSrc;
-        return new Fish(x, worldY, speed, img, direction, depth, value);
-    }
-}
-
-// Enhanced spawnFish function that uses preloaded images
-function spawnFishWithPreloader() {
-    fishes = [];
-    const config = levelConfigs[currentLevel];
-    worldHeight = config.worldHeight;
-    
-    // Define depth zones based on level (same as original)
-    let depthZones;
-    if (currentLevel === 1) {
-        depthZones = [
-            { minDepth: 400, maxDepth: 800, fishCount: 8, fishValue: 1 },
-            { minDepth: 800, maxDepth: 1200, fishCount: 12, fishValue: 2 },
-            { minDepth: 1200, maxDepth: 1800, fishCount: 10, fishValue: 3 }
-        ];
-    } else if (currentLevel === 2) {
-        depthZones = [
-            { minDepth: 500, maxDepth: 1000, fishCount: 6, fishValue: 2 },
-            { minDepth: 1000, maxDepth: 1500, fishCount: 10, fishValue: 3 },
-            { minDepth: 1500, maxDepth: 2200, fishCount: 12, fishValue: 4 }
-        ];
-    } else { // Level 3
-        depthZones = [
-            { minDepth: 600, maxDepth: 1200, fishCount: 5, fishValue: 3 },
-            { minDepth: 1200, maxDepth: 2000, fishCount: 8, fishValue: 5 },
-            { minDepth: 2000, maxDepth: 2800, fishCount: 10, fishValue: 8 }
-        ];
-    }
-    
-    depthZones.forEach(zone => {
-        for (let i = 0; i < zone.fishCount; i++) {
-            const fishType = config.fishTypes[Math.floor(Math.random() * config.fishTypes.length)];
-            const imageKey = fishType.replace('.png', '');
-            const preloadedImage = imagePreloader.getImage(imageKey);
-            
-            let x, speed, direction;
-            
-            if (Math.random() > 0.5) {
-                x = Math.random() * 100;
-                speed = Math.random() * 2 + 1;
-                direction = 'right';
-            } else {
-                x = canvas.width - (Math.random() * 100);
-                speed = -(Math.random() * 2 + 1);
-                direction = 'left';
-            }
-            
-            const worldY = zone.minDepth + Math.random() * (zone.maxDepth - zone.minDepth);
-            
-            if (preloadedImage) {
-                fishes.push(new Fish(x, worldY, speed, preloadedImage, direction, zone.minDepth, zone.fishValue));
-            } else {
-                // Fallback
-                const img = new Image();
-                img.src = `assets/${fishType}`;
-                fishes.push(new Fish(x, worldY, speed, img, direction, zone.minDepth, zone.fishValue));
-            }
-        }
-    });
-}
-
-// Replace spawnFish calls with spawnFishWithPreloader
-// You can add this line to override the original function:
-// spawnFish = spawnFishWithPreloader;
-
-console.log('Image preloader system loaded successfully!');
-// ==================== SIDEBAR FUNCTIONS ====================
-
-// Show sidebars when game starts
-function showGameSidebars() {
-  const leftSidebar = document.getElementById('left-sidebar');
-  const rightSidebar = document.getElementById('right-sidebar');
-  
-  if (leftSidebar) leftSidebar.style.display = 'block';
-  if (rightSidebar) rightSidebar.style.display = 'block';
-}
-
-// Hide sidebars when game ends or in menus
-function hideGameSidebars() {
-  const leftSidebar = document.getElementById('left-sidebar');
-  const rightSidebar = document.getElementById('right-sidebar');
-  
-  if (leftSidebar) leftSidebar.style.display = 'none';
-  if (rightSidebar) rightSidebar.style.display = 'none';
-}
-
-// Update fish count in right sidebar
-function updateSidebarFishCount(fishType) {
-  const fishItem = document.querySelector(`#right-sidebar [data-fish-type="${fishType}"]`);
-  if (fishItem) {
-    const countElement = fishItem.querySelector('.fish-count');
-    if (countElement) {
-      let currentCount = parseInt(countElement.textContent) || 0;
-      countElement.textContent = currentCount + 1;
-      
-      // Add visual feedback
-      fishItem.style.backgroundColor = 'rgba(0, 255, 136, 0.2)';
-      setTimeout(() => {
-        fishItem.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
-      }, 300);
-      
-      updateSidebarTotal();
-    }
-  }
-}
-
-// Update total score in sidebar
-function updateSidebarTotal() {
-  let total = 0;
-  const fishItems = document.querySelectorAll('#right-sidebar .fish-item');
-  
-  fishItems.forEach(fishItem => {
-    const countElement = fishItem.querySelector('.fish-count');
-    const scoreElement = fishItem.querySelector('.fish-score');
-    
-    if (countElement && scoreElement) {
-      const count = parseInt(countElement.textContent) || 0;
-      const scoreText = scoreElement.textContent;
-      const pointsMatch = scoreText.match(/(\d+)pts/);
-      
-      if (pointsMatch) {
-        const points = parseInt(pointsMatch[1]);
-        total += count * points;
-      }
-    }
+  preloadAllGameImages().then(() => {
+    console.log('All game images preloaded successfully!');
   });
-  
-  const totalElement = document.getElementById('sidebar-total');
-  if (totalElement) {
-    totalElement.textContent = total;
-  }
-}
-
-// Reset sidebar counts
-function resetSidebarCounts() {
-  const countElements = document.querySelectorAll('#right-sidebar .fish-count');
-  countElements.forEach(element => {
-    element.textContent = '0';
-  });
-  
-  const totalElement = document.getElementById('sidebar-total');
-  if (totalElement) {
-    totalElement.textContent = '0';
-  }
-}
-
-// Get fish type based on fish properties (you can customize this logic)
-function getFishType(fish) {
-  // Example logic - customize based on your fish object structure
-  if (fish.points <= 10) return 'common';
-  else if (fish.points <= 25) return 'tropical';
-  else if (fish.points <= 50) return 'shark';
-  else if (fish.points <= 75) return 'octopus';
-  else return 'squid';
-}
-
-// Initialize sidebars when DOM is loaded
-function initializeSidebars() {
-  // Hide sidebars initially
-  hideGameSidebars();
-  
-  // Add event listeners for better interaction
-  const fishItems = document.querySelectorAll('#right-sidebar .fish-item');
-  fishItems.forEach(item => {
-    item.addEventListener('mouseenter', function() {
-      this.style.transform = 'translateX(-3px)';
-    });
-    
-    item.addEventListener('mouseleave', function() {
-      this.style.transform = 'translateX(0)';
-    });
-  });
-}
-
-// Call this function when your game loads
-document.addEventListener('DOMContentLoaded', function() {
-  initializeSidebars();
 });
-
-// ==================== INTEGRATION HELPERS ====================
-
-// Call this when starting a new game
-function startGameWithSidebars() {
-  showGameSidebars();
-  resetSidebarCounts();
-}
-
-// Call this when game ends
-function endGameWithSidebars() {
-  hideGameSidebars();
-}
-
-// Call this when catching a fish
-function catchFishWithSidebar(fish) {
-  const fishType = getFishType(fish);
-  updateSidebarFishCount(fishType);
-}
-
-// Call this when going back to menus
-function backToMenuWithSidebars() {
-  hideGameSidebars();
-}
-
-// ==================== EXAMPLE USAGE ====================
-/*
-// In your existing game start function, add:
-startGameWithSidebars();
-
-// In your existing fish catching function, add:
-catchFishWithSidebar(caughtFish);
-
-// In your existing game end function, add:
-endGameWithSidebars();
-
-// In your existing back to menu functions, add:
-backToMenuWithSidebars();
-*/
-
