@@ -814,17 +814,21 @@ function updateCamera() {
 
 // Update boat position
 function updateBoatPosition() {
-  const hookDepthBelowBoat = Math.max(0, hook.worldY - boat.defaultWorldY);
+  // Always keep the boat floating at the water surface in world coordinates
   let targetBoatWorldY = boat.defaultWorldY;
-  if (hookDepthBelowBoat > 0) {
+  const hookDepthBelowBoat = Math.max(0, hook.worldY - boat.defaultWorldY);
+  // Only sink the boat if the hook is actively moving down and NOT at the boat
+  if (hookDepthBelowBoat > 0 && (hook.isMovingDown || !hook.isAtBoat)) {
     const boatDepthMovement = Math.min(boat.maxDepth, hookDepthBelowBoat * 0.25);
     targetBoatWorldY = boat.defaultWorldY + boatDepthMovement;
   }
+  // Smoothly move boat towards the target world Y (surface or slightly sunken)
   boat.worldY += (targetBoatWorldY - boat.worldY) * 0.04;
   boat.y = boat.worldY - cameraY;
   boatElement.style.top = (boat.y - 350) + 'px';
   const rect = boatElement.getBoundingClientRect();
   boat.x = rect.left + rect.width / 2;
+  // Boat delivers fish when hook comes up
   if (hook.worldY <= boat.worldY + 15 && hook.attachedFishes.length > 0) {
     let totalValue = 0;
     hook.attachedFishes.forEach(fish => {
@@ -840,11 +844,12 @@ function updateBoatPosition() {
     hook.attachedFishes = [];
     hook.fishBeingDelivered = false;
   }
+  // Reset hook/boat when hook reaches the boat
   if (hook.worldY <= boat.worldY) {
     hook.x = boat.x - 270;
     hook.y = boat.y + 20;
     hook.worldY = boat.worldY + 15;
-    hook.originalY = hook.y;
+    hook.originalY = boat.y + boat.height;
     hook.isMovingDown = false;
     hook.isMovingUp = false;
     hook.isAtBoat = true;
